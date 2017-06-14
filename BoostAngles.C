@@ -13,6 +13,9 @@ double contamination1Sin2S;
 double contamination3Sin2S;
 double contamination2Sin3S;
 
+//include calcPol.C;
+  Double_t costh_CS_, phi_CS_, costh_HX_, phi_HX_;
+void calcPol(TLorentzVector muplus_LAB, TLorentzVector muminus_LAB);
 void BoostAngles(Int_t nSigma=3
                       ){
 
@@ -27,7 +30,6 @@ void BoostAngles(Int_t nSigma=3
   TLorentzVector *lepP;
   TLorentzVector *lepN;
   TTree *treeIn = (TTree *) fIn->Get("selectedData");
-//  TTree *treeIn2 = (TTree *) fInmass->Get("massFitParameters");
   
   if(fIn->Get("selectedData")==NULL){
     printf("\n\n\nMissing data.\n\n\n");
@@ -46,7 +48,6 @@ void BoostAngles(Int_t nSigma=3
   gStyle->SetPadRightMargin(0.2);
   TTree *treeOut =  new TTree ("selectedData", "Boosted events");
   treeOut->SetAutoSave(0);
-//  TTree *treeOut2 = treeIn2->CloneTree(0);
 
   //==========================================================
   //reading fit parameters to establish signal mass window
@@ -81,7 +82,6 @@ void BoostAngles(Int_t nSigma=3
   massMin3S = mass[UPS3S] - nSigma*sigma[UPS3S];
   massMax3S = mass[UPS3S] + nSigma*sigma[UPS3S];
   
-
   cout<<"massMin = "<<massMin<<endl;
   cout<<"massMax = "<<massMax<<endl;
   cout<<"massMin1S = "<<massMin1S<<endl;
@@ -91,8 +91,6 @@ void BoostAngles(Int_t nSigma=3
   cout<<"massMin3S = "<<massMin3S<<endl;
   cout<<"massMax3S = "<<massMax3S<<endl;
   
-
-
   printf("--> signal mass window: %1.3f < M < %1.3f GeV\n", massMin, massMax);
 
   //calculate the L and R mass windows:
@@ -108,9 +106,7 @@ void BoostAngles(Int_t nSigma=3
   Double_t nBGSR1S = fBG->Integral(massMin1S,massMax1S);
   Double_t nBGSR2S = fBG->Integral(massMin2S,massMax2S);
   Double_t nBGSR3S = fBG->Integral(massMin3S,massMax3S);
-cout<<(nBGSB+nBGSR1S)/nBGSB<<endl; 
-cout<<(nBGSB+nBGSR2S)/nBGSB<<endl; 
-cout<<(nBGSB+nBGSR3S)/nBGSB<<endl;
+
   fInmass->Close();
   fIn->cd();
   
@@ -130,18 +126,15 @@ cout<<(nBGSB+nBGSR3S)/nBGSB<<endl;
   treeOut->Branch("w_Y3S", &w_Y3S, "w_Y3S/D");
   treeIn->SetBranchAddress("lepP", &lepP);
   treeIn->SetBranchAddress("lepN", &lepN);
-  TLorentzVector *onia = new TLorentzVector();
 
-//TLorentzVector lepton_DILEP = *lepP;
-const double pbeam_ = 7000.; // exact number irrelevant as long as pbeam >> Mprot
-const double Mprot_ = 0.9382720;
-const double gPI_ = TMath::Pi();
-const double Ebeam_ = sqrt( pbeam_*pbeam_ + Mprot_*Mprot_ );
-TLorentzVector beam1_LAB_( 0., 0., pbeam_, Ebeam_ );
-TLorentzVector beam2_LAB_( 0., 0., -pbeam_, Ebeam_ );
-
-  
-  
+  //TLorentzVector lepton_DILEP = *lepP;
+/*  const double pbeam_ = 7000.; // exact number irrelevant as long as pbeam >> Mprot
+  const double Mprot_ = 0.9382720;
+  const double gPI_ = TMath::Pi();
+  const double Ebeam_ = sqrt( pbeam_*pbeam_ + Mprot_*Mprot_ );
+  TLorentzVector beam1_LAB_( 0., 0., pbeam_, Ebeam_ );
+  TLorentzVector beam2_LAB_( 0., 0., -pbeam_, Ebeam_ );
+*/  
   for(int iEn = 0; iEn < treeIn->GetEntries(); iEn++){ 
   
     Long64_t iEntry = treeIn->LoadTree(iEn);
@@ -149,17 +142,18 @@ TLorentzVector beam2_LAB_( 0., 0., -pbeam_, Ebeam_ );
     if(iEn % 100000 == 0)
       cout << "entry " << iEntry << " out of " << treeIn->GetEntries() << endl;
 
-    *onia = *(lepP) + *(lepN);
-    onia_mass = onia->M();
-    pT = onia->Pt();
-    onia_rap  = onia->Rapidity();
-    
+    TLorentzVector onia = *(lepP) + *(lepN);
+    onia_mass = onia.M();
+    pT = onia.Pt();
+    onia_rap  = onia.Rapidity();
+
+	  
 //Calculating boosted angles
 ////////////////////////////
 ////////////////////////////
 ////////////////////////////
-
-TVector3 lab_to_dilep = -onia->BoostVector();
+/*
+ TVector3 lab_to_dilep = -onia.BoostVector();
 
  TLorentzVector beam1_DILEP = beam1_LAB_;
 	    beam1_DILEP.Boost(lab_to_dilep);         // beam1 in the dilepton rest frame
@@ -168,7 +162,7 @@ TVector3 lab_to_dilep = -onia->BoostVector();
 
 	    TVector3 beam1_direction     = beam1_DILEP.Vect().Unit();
 	    TVector3 beam2_direction     = beam2_DILEP.Vect().Unit();
-	    TVector3 dilep_direction     = onia->Vect().Unit();
+	    TVector3 dilep_direction     = onia.Vect().Unit();
 	    TVector3 beam1_beam2_bisect  = ( beam1_direction - beam2_direction ).Unit();
 
 
@@ -228,7 +222,14 @@ TVector3 lab_to_dilep = -onia->BoostVector();
 ////////////////////////////
 ////////////////////////////
 ////////////////////////////
+  */
   
+  calcPol(*lepP, *lepN);
+  
+  costh_CS = costh_CS_;
+  costh_HX = costh_HX_;
+  phi_CS = phi_CS_;
+  phi_HX = phi_HX_;
 
 
   if(onia_mass > massMin1S && onia_mass < massMax1S) {w_Y1S = 1; w_Y2S = 0; w_Y3S = 0;}
@@ -247,5 +248,94 @@ TVector3 lab_to_dilep = -onia->BoostVector();
 //  treeOut2->Write();
   fOut->Close();
   fIn->Close();
+
+}
+
+void calcPol(TLorentzVector muplus_LAB,
+	     TLorentzVector muminus_LAB)
+	     {
+  
+  TLorentzVector qqbar_LAB = muplus_LAB + muminus_LAB;
+  Double_t rapidity = qqbar_LAB.Rapidity();
+  
+  const double pbeam = 3500.;
+  // masses
+  const double Mprot = 0.9382720;
+  const double Ebeam = sqrt( pbeam*pbeam + Mprot*Mprot );
+  const TLorentzVector beam1_LAB( 0., 0., pbeam, Ebeam );
+  const TLorentzVector beam2_LAB( 0., 0., -pbeam, Ebeam );
+  const double muMass = 0.105658;
+
+  // boost beams and positive muon into the q-qbar rest frame:
+  TVector3 LAB_to_QQBAR = -qqbar_LAB.BoostVector();
+
+  TLorentzVector beam1_QQBAR = beam1_LAB;
+  beam1_QQBAR.Boost( LAB_to_QQBAR );
+
+  TLorentzVector beam2_QQBAR = beam2_LAB;
+  beam2_QQBAR.Boost( LAB_to_QQBAR );
+
+  TLorentzVector muplus_QQBAR = muplus_LAB;
+  muplus_QQBAR.Boost( LAB_to_QQBAR );
+
+  // reference directions in the Jpsi rest frame:
+
+  TVector3 beam1_direction     = beam1_QQBAR.Vect().Unit();
+  TVector3 beam2_direction     = beam2_QQBAR.Vect().Unit();
+  TVector3 qqbar_direction     = qqbar_LAB.Vect().Unit();
+  TVector3 beam1_beam2_bisect  = ( beam1_direction - beam2_direction ).Unit();
+
+  // all polarization frames have the same Y axis = the normal to the plane formed by
+  // the directions of the colliding hadrons
+  TVector3 Yaxis = ( beam1_direction.Cross( beam2_direction ) ).Unit();
+  if ( rapidity < 0. ) Yaxis = -Yaxis; //H: added (5 Dec 2010)
+
+  /////////////////////////////////////////////////////////////////////
+  // CS frame
+
+  TVector3 newZaxis = beam1_beam2_bisect;
+  TVector3 newYaxis = Yaxis;
+  TVector3 newXaxis = newYaxis.Cross( newZaxis );
+
+  TRotation rotation;
+  rotation.RotateAxes( newXaxis, newYaxis, newZaxis );
+  rotation.Invert();   // transforms coordinates from the "xyz" system
+  // to the "new" (rotated) system having the polarization axis
+  // as z axis
+
+  TVector3 muplus_QQBAR_rotated(muplus_QQBAR.Vect());
+  
+  muplus_QQBAR_rotated.Transform( rotation );
+
+  costh_CS_ = muplus_QQBAR_rotated.CosTheta();
+
+//  thisPhi_rad[onia::CS] = muplus_QQBAR_rotated.Phi();
+  phi_CS_ = muplus_QQBAR_rotated.Phi() * 180. / TMath::Pi();
+  //if ( thisPhi[onia::CS] < 0. ) thisPhi[onia::CS]= 360. + thisPhi[onia::CS];      // phi defined in degrees from 0 to 360
+  //  thisPhi[onia::CS] += 180.; //H: don't add anything...
+
+  /////////////////////////////////////////////////////////////////////
+  // HELICITY frame
+
+  newZaxis = qqbar_direction;
+  newYaxis = Yaxis;
+  newXaxis = newYaxis.Cross( newZaxis );
+
+  rotation.SetToIdentity();
+  rotation.RotateAxes( newXaxis, newYaxis, newZaxis );
+  rotation.Invert();
+
+  muplus_QQBAR_rotated = muplus_QQBAR.Vect();
+
+  muplus_QQBAR_rotated.Transform( rotation );
+
+  costh_HX_ = muplus_QQBAR_rotated.CosTheta();
+
+//  thisPhi_rad[onia::HX] = muplus_QQBAR_rotated.Phi();
+  phi_HX_ = muplus_QQBAR_rotated.Phi() * 180. / TMath::Pi();
+  //if ( thisPhi[onia::HX] < 0. ) thisPhi[onia::HX] = 360. + thisPhi[onia::HX]; // phi defined in degrees from 0 to 360
+  //thisPhi[onia::HX] += 180.;//H: don't add anything...
+ 
+  /////////////////////////////////////////////////////////////////////
 
 }
