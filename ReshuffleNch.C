@@ -24,6 +24,7 @@ Char_t fileNameOut[100];
 sprintf(fileNameOut, "tmpFiles/data_ReshuffledNch.root");
 TFile *fOut = new TFile(fileNameOut, "RECREATE");
 TTree *treeOut =  new TTree ("reshuffledData", "reshuffled events");
+treeOut->SetAutoSave(0);
 
 Double_t pT_, mass_, rap_, costh_CS_, costh_HX_, phi_CS_, phi_HX_, Nch_, w_Y1S_, w_Y2S_, w_Y3S_;
 Double_t pT, mass, rap, costh_CS, costh_HX, phi_CS, phi_HX, Nch, w_Y1S, w_Y2S, w_Y3S;

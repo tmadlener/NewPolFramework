@@ -65,13 +65,7 @@ void BookHistosReco(){
   //rap
   Int_t nBinsRap = 100;
   Double_t rapMin = -2.5, rapMax = 2.5;
-  //Nch
-  Int_t nBinsNch = 100;
-  Double_t NchMin = 0., NchMax = 100.;
   
-  Int_t nPriVtx = 25;
-  Double_t nPriVtxMin = 0., nPriVtxMax = 24.;
-
   Char_t name[100], title[300];
   //statistics
   Reco_StatEv = new TH1F("Reco_StatEv", "", 12, 0., 12.);
@@ -91,11 +85,14 @@ void BookHistosReco(){
 
   //prepare the branches for the output tree
   treeOut = new TTree ("selectedData", "selected events");
+  treeOut->SetAutoSave(0);
+
   lepP = new TLorentzVector();
   lepN = new TLorentzVector();
 
   treeOut->Branch("lepP", "TLorentzVector", &lepP);
   treeOut->Branch("lepN", "TLorentzVector", &lepN);
+  
 
 }
 

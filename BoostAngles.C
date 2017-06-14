@@ -27,7 +27,7 @@ void BoostAngles(Int_t nSigma=3
   TLorentzVector *lepP;
   TLorentzVector *lepN;
   TTree *treeIn = (TTree *) fIn->Get("selectedData");
-  TTree *treeIn2 = (TTree *) fInmass->Get("massFitParameters");
+//  TTree *treeIn2 = (TTree *) fInmass->Get("massFitParameters");
   
   if(fIn->Get("selectedData")==NULL){
     printf("\n\n\nMissing data.\n\n\n");
@@ -45,7 +45,8 @@ void BoostAngles(Int_t nSigma=3
   TFile *fOut = new TFile(fileNameOut, "RECREATE");
   gStyle->SetPadRightMargin(0.2);
   TTree *treeOut =  new TTree ("selectedData", "Boosted events");
-  TTree *treeOut2 = treeIn2->CloneTree(0);
+  treeOut->SetAutoSave(0);
+//  TTree *treeOut2 = treeIn2->CloneTree(0);
 
   //==========================================================
   //reading fit parameters to establish signal mass window
@@ -243,7 +244,7 @@ TVector3 lab_to_dilep = -onia->BoostVector();
   //write the output
   fOut->cd();
   treeOut->Write();
-  treeOut2->Write();
+//  treeOut2->Write();
   fOut->Close();
   fIn->Close();
 

@@ -7,25 +7,24 @@
 TH1F *Reco_StatEv;
 TTree *treeOut;
 TLorentzVector *lepP, *lepN;
+Double_t Nch;
 TH2F *Reco_Onia_rap_pT;
 TH1F *Reco_Onia_mass;
 
 void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys)
 {
 
-
    if (fChain == 0) return;
    
-   double Nch;
-   treeOut->Branch("Nch", &Nch, "Nch/D");
-   
+   Double_t Nch;
+   treeOut->Branch("Nch", &Nch, "Nch/D");   
 
    Long64_t nentries = fChain->GetEntries();
 
    Long64_t nbytes = 0, nb = 0, countRecEvent = 0;
    
    
-//   nentries=5000000;
+//   nentries=2500000;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
    
       if(jentry % 1000000 == 0) printf("event %d out of %d\n", (Int_t) jentry, (Int_t) nentries);
