@@ -10,8 +10,6 @@ TLorentzVector *lepP, *lepN;
 TH2F *Reco_Onia_rap_pT;
 TH1F *Reco_Onia_mass;
 
-double up3sevt;
-
 void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys)
 {
 
@@ -111,9 +109,7 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys)
 	
 	if(onia_mass < 8.4 || onia_mass > 11.6) //all Upsilons triggered
       continue;
-      
-    if(onia_mass < 10.61 && onia_mass > 10.08) up3sevt++;
-      
+            
     Reco_StatEv->Fill(4.5);
     
     Reco_Onia_rap_pT->Fill(onia_rap, onia_pt);
@@ -128,5 +124,4 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys)
    }
    
 printf("nb. of rec. events is %d of a total of %d events\n", (Int_t) countRecEvent, (Int_t) nentries);
-cout<<"ups3s: "<<up3sevt<<endl;
 }

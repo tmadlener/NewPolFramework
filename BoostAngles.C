@@ -89,6 +89,8 @@ void BoostAngles(Int_t nSigma=3
   cout<<"massMax2S = "<<massMax2S<<endl;
   cout<<"massMin3S = "<<massMin3S<<endl;
   cout<<"massMax3S = "<<massMax3S<<endl;
+  
+
 
   printf("--> signal mass window: %1.3f < M < %1.3f GeV\n", massMin, massMax);
 
@@ -105,7 +107,9 @@ void BoostAngles(Int_t nSigma=3
   Double_t nBGSR1S = fBG->Integral(massMin1S,massMax1S);
   Double_t nBGSR2S = fBG->Integral(massMin2S,massMax2S);
   Double_t nBGSR3S = fBG->Integral(massMin3S,massMax3S);
-
+cout<<(nBGSB+nBGSR1S)/nBGSB<<endl; 
+cout<<(nBGSB+nBGSR2S)/nBGSB<<endl; 
+cout<<(nBGSB+nBGSR3S)/nBGSB<<endl;
   fInmass->Close();
   fIn->cd();
   
@@ -227,18 +231,11 @@ TVector3 lab_to_dilep = -onia->BoostVector();
 
 
   if(onia_mass > massMin1S && onia_mass < massMax1S) {w_Y1S = 1; w_Y2S = 0; w_Y3S = 0;}
-  if(onia_mass > massMin2S && onia_mass < massMax2S) {w_Y1S = 0; w_Y2S = 1; w_Y3S = 0;}
-  if(onia_mass > massMin3S && onia_mass < massMax3S) {w_Y1S = 0; w_Y2S = 0; w_Y3S = 1;}
+  else if(onia_mass > massMin2S && onia_mass < massMax2S) {w_Y1S = 0; w_Y2S = 1; w_Y3S = 0;}
+  else if(onia_mass > massMin3S && onia_mass < massMax3S) {w_Y1S = 0; w_Y2S = 0; w_Y3S = 1;}
   else {w_Y1S = 1 - (nBGSB+nBGSR1S)/nBGSB; w_Y2S = 1 - (nBGSB+nBGSR2S)/nBGSB; w_Y3S = 1 - (nBGSB+nBGSR3S)/nBGSB;}
   
-
- //   if(onia_mass > massMin && onia_mass < massMax){
-      treeOut->Fill(); //stores TLorenzVectors of the two muons
-
-      // //store now the cosTheta and phi distributions of the signal window:
-      // calcPol(*lepP, *lepN);
-
-   // }
+  treeOut->Fill(); //stores TLorenzVectors of the two muons
   }
 
 
