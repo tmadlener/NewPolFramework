@@ -13,9 +13,9 @@ using namespace std;
 //====================================
 int main(){
 
-	  gROOT->ProcessLine(".L ReshuffleNch.C+");
+  gROOT->ProcessLine(".L ReshuffleNch.C+");
 
-        ReshuffleNch();	
+  ReshuffleNch();
 
   return 0;
 }

@@ -48,22 +48,22 @@ make
 
 if [ ${execute_prepareEvents} -eq 1 ]
 then
-./runPrepareEvents rejectCowboys=${rejectCowboys} ${inputTree1}=inputTree1 RequestTrigger=${RequestTrigger}
+  ./runPrepareEvents rejectCowboys=${rejectCowboys} ${inputTree1}=inputTree1 RequestTrigger=${RequestTrigger}
 fi
 
 if [ ${execute_runMassFit} -eq 1 ]
 then
-./runMassFit
+  ./runMassFit
 fi
 
 if [ ${execute_runBoostAngles} -eq 1 ]
 then
-./runBoostAngles
+  ./runBoostAngles
 fi
 
 if [ ${execute_runReshuffleNch} -eq 1 ]
 then
-./runReshuffleNch
+  ./runReshuffleNch
 fi
 
 rm *_C.d
@@ -73,4 +73,3 @@ rm runPrepareEvents
 rm runBoostAngles
 cd ..
 cd ..
-

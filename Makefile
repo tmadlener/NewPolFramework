@@ -6,18 +6,18 @@ LIBS=$(shell root-config --libs)
 
 all: runPrepareEvents runMassFit runBoostAngles runReshuffleNch
 
-runPrepareEvents: runPrepareEvents.cc 
-	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
-	
-runMassFit: runMassFit.cc
-	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
-	
-runBoostAngles: runBoostAngles.cc 
+runPrepareEvents: runPrepareEvents.cc
 	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
 
-runReshuffleNch: runReshuffleNch.cc 
+runMassFit: runMassFit.cc
 	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
-	
-									
-clean: 
+
+runBoostAngles: runBoostAngles.cc
+	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
+
+runReshuffleNch: runReshuffleNch.cc
+	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
+
+
+clean:
 	rm runPrepareEvents runMassFit runBoostAngles runReshuffleNch*.o

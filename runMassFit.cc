@@ -13,13 +13,13 @@ using namespace std;
 //====================================
 int main(){
 
-	Double_t nSigma = 3.; //sigma_mass cut for preparation of figures
-	Char_t *fileNameIn = (char*)"tmpFiles/selEvents_data_Ups.root";
+  Double_t nSigma = 3.; //sigma_mass cut for preparation of figures
+  Char_t *fileNameIn = (char*)"tmpFiles/selEvents_data_Ups.root";
 
 
-	  gROOT->ProcessLine(".L upsilon_2StepFit.C+");
+  gROOT->ProcessLine(".L upsilon_2StepFit.C+");
 
-        upsilon_2StepFit(nSigma, fileNameIn);	
+  upsilon_2StepFit(nSigma, fileNameIn);
 
   return 0;
 }

@@ -14,10 +14,9 @@ double contamination3Sin2S;
 double contamination2Sin3S;
 
 //include calcPol.C;
-  Double_t costh_CS_, phi_CS_, costh_HX_, phi_HX_;
+Double_t costh_CS_, phi_CS_, costh_HX_, phi_HX_;
 void calcPol(TLorentzVector muplus_LAB, TLorentzVector muminus_LAB);
-void BoostAngles(Int_t nSigma=3
-                      ){
+void BoostAngles(Int_t nSigma=3){
 
   Char_t fileNameIn[100];
   sprintf(fileNameIn, "tmpFiles/selEvents_data_Ups.root");
@@ -30,18 +29,18 @@ void BoostAngles(Int_t nSigma=3
   TLorentzVector *lepP;
   TLorentzVector *lepN;
   TTree *treeIn = (TTree *) fIn->Get("selectedData");
-  
+
   if(fIn->Get("selectedData")==NULL){
     printf("\n\n\nMissing data.\n\n\n");
   }
-  
+
   if(fInmass->Get("massFitParameters")==NULL){
     printf("\n\n\nMissing mass params.\n\n\n");
   }
 
   //==============================
 
-  //definition of output variables 
+  //definition of output variables
   Char_t fileNameOut[100];
   sprintf(fileNameOut, "tmpFiles/data.root");
   TFile *fOut = new TFile(fileNameOut, "RECREATE");
@@ -81,7 +80,7 @@ void BoostAngles(Int_t nSigma=3
   massMax2S = mass[UPS2S] + nSigma*sigma[UPS2S];
   massMin3S = mass[UPS3S] - nSigma*sigma[UPS3S];
   massMax3S = mass[UPS3S] + nSigma*sigma[UPS3S];
-  
+
   cout<<"massMin = "<<massMin<<endl;
   cout<<"massMax = "<<massMax<<endl;
   cout<<"massMin1S = "<<massMin1S<<endl;
@@ -90,7 +89,7 @@ void BoostAngles(Int_t nSigma=3
   cout<<"massMax2S = "<<massMax2S<<endl;
   cout<<"massMin3S = "<<massMin3S<<endl;
   cout<<"massMax3S = "<<massMax3S<<endl;
-  
+
   printf("--> signal mass window: %1.3f < M < %1.3f GeV\n", massMin, massMax);
 
   //calculate the L and R mass windows:
@@ -101,7 +100,7 @@ void BoostAngles(Int_t nSigma=3
   massMaxBG[R] = 11.4;
   printf("--> L mass window: %1.3f < M < %1.3f GeV\n", massMinBG[L], massMaxBG[L]);
   printf("--> R mass window: %1.3f < M < %1.3f GeV\n", massMinBG[R], massMaxBG[R]);
-  
+
   Double_t nBGSB = fBG->Integral(massMinBG[L],massMaxBG[L])+fBG->Integral(massMinBG[R],massMaxBG[R]);
   Double_t nBGSR1S = fBG->Integral(massMin1S,massMax1S);
   Double_t nBGSR2S = fBG->Integral(massMin2S,massMax2S);
@@ -109,7 +108,7 @@ void BoostAngles(Int_t nSigma=3
 
   fInmass->Close();
   fIn->cd();
-  
+
   lepP = 0; lepN = 0;
   Double_t Nch, pT, costh_HX, phi_HX, costh_CS, phi_CS, onia_mass, onia_rap, w_Y1S, w_Y2S, w_Y3S;
   treeIn->SetBranchAddress("Nch", &Nch);
@@ -128,15 +127,15 @@ void BoostAngles(Int_t nSigma=3
   treeIn->SetBranchAddress("lepN", &lepN);
 
   //TLorentzVector lepton_DILEP = *lepP;
-/*  const double pbeam_ = 7000.; // exact number irrelevant as long as pbeam >> Mprot
-  const double Mprot_ = 0.9382720;
-  const double gPI_ = TMath::Pi();
-  const double Ebeam_ = sqrt( pbeam_*pbeam_ + Mprot_*Mprot_ );
-  TLorentzVector beam1_LAB_( 0., 0., pbeam_, Ebeam_ );
-  TLorentzVector beam2_LAB_( 0., 0., -pbeam_, Ebeam_ );
-*/  
-  for(int iEn = 0; iEn < treeIn->GetEntries(); iEn++){ 
-  
+  /*  const double pbeam_ = 7000.; // exact number irrelevant as long as pbeam >> Mprot
+      const double Mprot_ = 0.9382720;
+      const double gPI_ = TMath::Pi();
+      const double Ebeam_ = sqrt( pbeam_*pbeam_ + Mprot_*Mprot_ );
+      TLorentzVector beam1_LAB_( 0., 0., pbeam_, Ebeam_ );
+      TLorentzVector beam2_LAB_( 0., 0., -pbeam_, Ebeam_ );
+  */
+  for(int iEn = 0; iEn < treeIn->GetEntries(); iEn++){
+
     Long64_t iEntry = treeIn->LoadTree(iEn);
     treeIn->GetEntry(iEntry);
     if(iEn % 100000 == 0)
@@ -147,97 +146,97 @@ void BoostAngles(Int_t nSigma=3
     pT = onia.Pt();
     onia_rap  = onia.Rapidity();
 
-	  
-//Calculating boosted angles
-////////////////////////////
-////////////////////////////
-////////////////////////////
-/*
- TVector3 lab_to_dilep = -onia.BoostVector();
 
- TLorentzVector beam1_DILEP = beam1_LAB_;
-	    beam1_DILEP.Boost(lab_to_dilep);         // beam1 in the dilepton rest frame
-	    TLorentzVector beam2_DILEP = beam2_LAB_;
-	    beam2_DILEP.Boost(lab_to_dilep);         // beam2 in the dilepton rest frame
+    //Calculating boosted angles
+    ////////////////////////////
+    ////////////////////////////
+    ////////////////////////////
+    /*
+      TVector3 lab_to_dilep = -onia.BoostVector();
 
-	    TVector3 beam1_direction     = beam1_DILEP.Vect().Unit();
-	    TVector3 beam2_direction     = beam2_DILEP.Vect().Unit();
-	    TVector3 dilep_direction     = onia.Vect().Unit();
-	    TVector3 beam1_beam2_bisect  = ( beam1_direction - beam2_direction ).Unit();
+      TLorentzVector beam1_DILEP = beam1_LAB_;
+      beam1_DILEP.Boost(lab_to_dilep);         // beam1 in the dilepton rest frame
+      TLorentzVector beam2_DILEP = beam2_LAB_;
+      beam2_DILEP.Boost(lab_to_dilep);         // beam2 in the dilepton rest frame
 
-
-// all polarization frames have the same Y axis = the normal to the plane formed by
-	    // the directions of the colliding hadrons:
-
-	    TVector3 Yaxis = ( beam1_direction.Cross( beam2_direction ) ).Unit();
-
-	    // flip of y axis with rapidity:
-
-	    if ( onia_rap < 0. ) Yaxis = - Yaxis;
-
-	    TVector3 perpendicular_to_beam = ( beam1_beam2_bisect.Cross( Yaxis ) ).Unit();
-	    
-	    TLorentzVector lepton_DILEP = *lepP;
-	    lepton_DILEP.Boost(lab_to_dilep);
-
-	    // CS frame angles:
-
-	    TVector3 newZaxis = beam1_beam2_bisect;
-	    TVector3 newYaxis = Yaxis;
-	    TVector3 newXaxis = newYaxis.Cross( newZaxis );
-
-	    TRotation rotation;
-	    rotation.SetToIdentity();
-	    rotation.RotateAxes( newXaxis, newYaxis, newZaxis );
-	    rotation.Invert();  // transforms coordinates from the "xyz" frame to the new frame
-	    TVector3 lepton_DILEP_rotated = lepton_DILEP.Vect();
-	    lepton_DILEP_rotated.Transform(rotation);
-
-	     costh_CS = lepton_DILEP_rotated.CosTheta();
-	     phi_CS   = lepton_DILEP_rotated.Phi() * 180. / gPI_;
-	    double phith_CS;
-	    if ( costh_CS < 0. ) phith_CS = phi_CS - 135.;
-	    if ( costh_CS > 0. ) phith_CS = phi_CS - 45.;
-	    if ( phith_CS < -180. ) phith_CS = 360. + phith_CS;
+      TVector3 beam1_direction     = beam1_DILEP.Vect().Unit();
+      TVector3 beam2_direction     = beam2_DILEP.Vect().Unit();
+      TVector3 dilep_direction     = onia.Vect().Unit();
+      TVector3 beam1_beam2_bisect  = ( beam1_direction - beam2_direction ).Unit();
 
 
-	    // HELICITY frame angles:
+      // all polarization frames have the same Y axis = the normal to the plane formed by
+      // the directions of the colliding hadrons:
 
-	    newZaxis = dilep_direction;
-	    newYaxis = Yaxis;
-	    newXaxis = newYaxis.Cross( newZaxis );
+      TVector3 Yaxis = ( beam1_direction.Cross( beam2_direction ) ).Unit();
 
-	    rotation.SetToIdentity();
-	    rotation.RotateAxes( newXaxis, newYaxis, newZaxis );
-	    rotation.Invert();
-	    lepton_DILEP_rotated = lepton_DILEP.Vect();
-	    lepton_DILEP_rotated.Transform(rotation);
+      // flip of y axis with rapidity:
 
-	     costh_HX = lepton_DILEP_rotated.CosTheta();
-	     phi_HX   = lepton_DILEP_rotated.Phi() * 180. / gPI_;
-	    double phith_HX;
-	    if ( costh_HX < 0. ) phith_HX = phi_HX - 135.;
-	    if ( costh_HX > 0. ) phith_HX = phi_HX - 45.;
-	    if ( phith_HX < -180. ) phith_HX = 360. + phith_HX;
-////////////////////////////
-////////////////////////////
-////////////////////////////
-  */
-  
-  calcPol(*lepP, *lepN);
-  
-  costh_CS = costh_CS_;
-  costh_HX = costh_HX_;
-  phi_CS = phi_CS_;
-  phi_HX = phi_HX_;
+      if ( onia_rap < 0. ) Yaxis = - Yaxis;
+
+      TVector3 perpendicular_to_beam = ( beam1_beam2_bisect.Cross( Yaxis ) ).Unit();
+
+      TLorentzVector lepton_DILEP = *lepP;
+      lepton_DILEP.Boost(lab_to_dilep);
+
+      // CS frame angles:
+
+      TVector3 newZaxis = beam1_beam2_bisect;
+      TVector3 newYaxis = Yaxis;
+      TVector3 newXaxis = newYaxis.Cross( newZaxis );
+
+      TRotation rotation;
+      rotation.SetToIdentity();
+      rotation.RotateAxes( newXaxis, newYaxis, newZaxis );
+      rotation.Invert();  // transforms coordinates from the "xyz" frame to the new frame
+      TVector3 lepton_DILEP_rotated = lepton_DILEP.Vect();
+      lepton_DILEP_rotated.Transform(rotation);
+
+      costh_CS = lepton_DILEP_rotated.CosTheta();
+      phi_CS   = lepton_DILEP_rotated.Phi() * 180. / gPI_;
+      double phith_CS;
+      if ( costh_CS < 0. ) phith_CS = phi_CS - 135.;
+      if ( costh_CS > 0. ) phith_CS = phi_CS - 45.;
+      if ( phith_CS < -180. ) phith_CS = 360. + phith_CS;
 
 
-  if(onia_mass > massMin1S && onia_mass < massMax1S) {w_Y1S = 1; w_Y2S = 0; w_Y3S = 0;}
-  else if(onia_mass > massMin2S && onia_mass < massMax2S) {w_Y1S = 0; w_Y2S = 1; w_Y3S = 0;}
-  else if(onia_mass > massMin3S && onia_mass < massMax3S) {w_Y1S = 0; w_Y2S = 0; w_Y3S = 1;}
-  else {w_Y1S = 1 - (nBGSB+nBGSR1S)/nBGSB; w_Y2S = 1 - (nBGSB+nBGSR2S)/nBGSB; w_Y3S = 1 - (nBGSB+nBGSR3S)/nBGSB;}
-  
-  treeOut->Fill(); //stores TLorenzVectors of the two muons
+      // HELICITY frame angles:
+
+      newZaxis = dilep_direction;
+      newYaxis = Yaxis;
+      newXaxis = newYaxis.Cross( newZaxis );
+
+      rotation.SetToIdentity();
+      rotation.RotateAxes( newXaxis, newYaxis, newZaxis );
+      rotation.Invert();
+      lepton_DILEP_rotated = lepton_DILEP.Vect();
+      lepton_DILEP_rotated.Transform(rotation);
+
+      costh_HX = lepton_DILEP_rotated.CosTheta();
+      phi_HX   = lepton_DILEP_rotated.Phi() * 180. / gPI_;
+      double phith_HX;
+      if ( costh_HX < 0. ) phith_HX = phi_HX - 135.;
+      if ( costh_HX > 0. ) phith_HX = phi_HX - 45.;
+      if ( phith_HX < -180. ) phith_HX = 360. + phith_HX;
+      ////////////////////////////
+      ////////////////////////////
+      ////////////////////////////
+      */
+
+    calcPol(*lepP, *lepN);
+
+    costh_CS = costh_CS_;
+    costh_HX = costh_HX_;
+    phi_CS = phi_CS_;
+    phi_HX = phi_HX_;
+
+
+    if(onia_mass > massMin1S && onia_mass < massMax1S) {w_Y1S = 1; w_Y2S = 0; w_Y3S = 0;}
+    else if(onia_mass > massMin2S && onia_mass < massMax2S) {w_Y1S = 0; w_Y2S = 1; w_Y3S = 0;}
+    else if(onia_mass > massMin3S && onia_mass < massMax3S) {w_Y1S = 0; w_Y2S = 0; w_Y3S = 1;}
+    else {w_Y1S = 1 - (nBGSB+nBGSR1S)/nBGSB; w_Y2S = 1 - (nBGSB+nBGSR2S)/nBGSB; w_Y3S = 1 - (nBGSB+nBGSR3S)/nBGSB;}
+
+    treeOut->Fill(); //stores TLorenzVectors of the two muons
   }
 
 
@@ -245,19 +244,19 @@ void BoostAngles(Int_t nSigma=3
   //write the output
   fOut->cd();
   treeOut->Write();
-//  treeOut2->Write();
+  //  treeOut2->Write();
   fOut->Close();
   fIn->Close();
 
 }
 
 void calcPol(TLorentzVector muplus_LAB,
-	     TLorentzVector muminus_LAB)
-	     {
-  
+             TLorentzVector muminus_LAB)
+{
+
   TLorentzVector qqbar_LAB = muplus_LAB + muminus_LAB;
   Double_t rapidity = qqbar_LAB.Rapidity();
-  
+
   const double pbeam = 3500.;
   // masses
   const double Mprot = 0.9382720;
@@ -304,12 +303,12 @@ void calcPol(TLorentzVector muplus_LAB,
   // as z axis
 
   TVector3 muplus_QQBAR_rotated(muplus_QQBAR.Vect());
-  
+
   muplus_QQBAR_rotated.Transform( rotation );
 
   costh_CS_ = muplus_QQBAR_rotated.CosTheta();
 
-//  thisPhi_rad[onia::CS] = muplus_QQBAR_rotated.Phi();
+  //  thisPhi_rad[onia::CS] = muplus_QQBAR_rotated.Phi();
   phi_CS_ = muplus_QQBAR_rotated.Phi() * 180. / TMath::Pi();
   //if ( thisPhi[onia::CS] < 0. ) thisPhi[onia::CS]= 360. + thisPhi[onia::CS];      // phi defined in degrees from 0 to 360
   //  thisPhi[onia::CS] += 180.; //H: don't add anything...
@@ -331,11 +330,11 @@ void calcPol(TLorentzVector muplus_LAB,
 
   costh_HX_ = muplus_QQBAR_rotated.CosTheta();
 
-//  thisPhi_rad[onia::HX] = muplus_QQBAR_rotated.Phi();
+  //  thisPhi_rad[onia::HX] = muplus_QQBAR_rotated.Phi();
   phi_HX_ = muplus_QQBAR_rotated.Phi() * 180. / TMath::Pi();
   //if ( thisPhi[onia::HX] < 0. ) thisPhi[onia::HX] = 360. + thisPhi[onia::HX]; // phi defined in degrees from 0 to 360
   //thisPhi[onia::HX] += 180.;//H: don't add anything...
- 
+
   /////////////////////////////////////////////////////////////////////
 
 }

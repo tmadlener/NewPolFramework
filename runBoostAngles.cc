@@ -40,8 +40,8 @@ using namespace std;
 //====================================
 int main(int argc, char** argv){
 
-	Double_t nSigma = 3.;
-	
+  Double_t nSigma = 3.;
+
   gROOT->ProcessLine(".L BoostAngles.C+");
 
 

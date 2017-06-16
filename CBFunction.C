@@ -15,6 +15,6 @@ Double_t CBFunction(Double_t *x, Double_t *par){
     Double_t A = pow(n / TMath::Abs(alpha),n) * TMath::Exp(-alpha*alpha/2.);
     Double_t B = n / TMath::Abs(alpha) - TMath::Abs(alpha);
     CB = A*pow(B - (x[0]-mean)/sigma, -n);
-  } 
-  return par[0]*CB; 
+  }
+  return par[0]*CB;
 }

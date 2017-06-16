@@ -40,9 +40,9 @@ void SaveCBParameters(Double_t alpha, Double_t n, Double_t alphaErr, Double_t nE
 void SaveFitPars();
 //==============================
 void upsilon_2StepFit(
-		      Double_t nSigma = 2.,
-		      Char_t *fileNameIn = (char*) "RootFiles/selEvents_data_Ups_2Aug2011.root"){
-  
+                      Double_t nSigma = 2.,
+                      Char_t *fileNameIn = (char*) "RootFiles/selEvents_data_Ups_2Aug2011.root"){
+
   GetHisto(fileNameIn);
 
   if(hMass->GetEntries() < 1.){
@@ -51,7 +51,7 @@ void upsilon_2StepFit(
   }
 
   FitSignalBG(nSigma);
-//  DrawFit(nSigma);
+  //  DrawFit(nSigma);
 }
 
 //===============================
@@ -88,7 +88,7 @@ void DrawFit(Double_t nSigma){
   TH1 *hUps1S = fUps1S->GetHistogram();
   TH1 *hUps2S = fUps2S->GetHistogram();
   TH1 *hUps3S = fUps3S->GetHistogram();
-  
+
   THStack *hStack = new THStack("hMass_Stack", "");
   hStack->Add(hBG);
   hStack->Add(hUps3S);
@@ -102,7 +102,7 @@ void DrawFit(Double_t nSigma){
   TLine *line[3];
   Double_t max[3] = {1., 0.5, 0.3};
   for(int iL = 0; iL < 3; iL++){
-    line[iL]= new TLine(massMin[iL], 0.1, massMin[iL], max[iL]*hUps1S->GetMaximum()); 
+    line[iL]= new TLine(massMin[iL], 0.1, massMin[iL], max[iL]*hUps1S->GetMaximum());
     line[iL]->SetLineStyle(2); line[iL]->SetLineColor(colour[iL]);
     line[iL]->SetLineWidth(2);
     if(!PlotSimplistic) line[iL]->Draw();
@@ -110,25 +110,25 @@ void DrawFit(Double_t nSigma){
   }
 
 
-/*  double MassScan[13]={8.6,8.95,9.3,9.45,9.6,9.85,10.0125,10.175,10.3425,10.51,10.8,11.1,11.4};
-  TLine *line[13];
-  for(int iL = 0; iL < 13; iL++){
-    line[iL]= new TLine(MassScan[iL], 0.1, MassScan[iL], 1.1*hUps1S->GetMaximum());
-    line[iL]->SetLineStyle(2); line[iL]->SetLineColor(kWhite);
-    line[iL]->SetLineWidth(2);
-    line[iL]->Draw();
-  }
+  /*  double MassScan[13]={8.6,8.95,9.3,9.45,9.6,9.85,10.0125,10.175,10.3425,10.51,10.8,11.1,11.4};
+      TLine *line[13];
+      for(int iL = 0; iL < 13; iL++){
+      line[iL]= new TLine(MassScan[iL], 0.1, MassScan[iL], 1.1*hUps1S->GetMaximum());
+      line[iL]->SetLineStyle(2); line[iL]->SetLineColor(kWhite);
+      line[iL]->SetLineWidth(2);
+      line[iL]->Draw();
+      }
 
-  TLatex *texMassScan[13];
-  char MassScanName[200];
-  for(int iL = 0; iL < 13; iL++){
-	  sprintf(MassScanName,"%d",iL+1);
-	  texMassScan[iL] = new TLatex((MassScan[iL]+MassScan[iL+1])/2., 0.015*hStack->GetMaximum(), MassScanName);
-	  texMassScan[iL]->SetTextSize(0.03);
-	  texMassScan[iL]->SetTextColor(kWhite);
-	  texMassScan[iL]->Draw();
-  }
-*/
+      TLatex *texMassScan[13];
+      char MassScanName[200];
+      for(int iL = 0; iL < 13; iL++){
+      sprintf(MassScanName,"%d",iL+1);
+      texMassScan[iL] = new TLatex((MassScan[iL]+MassScan[iL+1])/2., 0.015*hStack->GetMaximum(), MassScanName);
+      texMassScan[iL]->SetTextSize(0.03);
+      texMassScan[iL]->SetTextColor(kWhite);
+      texMassScan[iL]->Draw();
+      }
+  */
   if(iRapBin == 0) sprintf(name, "|y| < %1.1f", onia::rapYPS);
   else if(iRapBin == 1) sprintf(name, "|y| < %1.1f", onia::rapForPTRange[iRapBin]);
   else if(iRapBin > 1)  sprintf(name, "%1.1f < |y| < %1.1f", onia::rapForPTRange[iRapBin-1], onia::rapForPTRange[iRapBin]);
@@ -140,7 +140,7 @@ void DrawFit(Double_t nSigma){
   if(iPTBin == 0) sprintf(name, "all p_{T}");
   else if(iPTBin > 0) sprintf(name, "%1.1f < p_{T} < %1.1f", onia::pTRange[iRapBin][iPTBin-1], onia::pTRange[iRapBin][iPTBin]);
   if(!PlotSimplistic)  tex->DrawLatex(xText, 0.94*hStack->GetMaximum(), name);
-  
+
   if(iCPMBin == 0) sprintf(name, "all N_{ch}");
   else if(iCPMBin > 0) sprintf(name, "%1.1f < N_{ch} < %1.1f", onia::cpmRange[iCPMBin-1], onia::cpmRange[iCPMBin]);
   if(!PlotSimplistic)  tex->DrawLatex(xText, 0.86*hStack->GetMaximum(), name);
@@ -152,116 +152,116 @@ void DrawFit(Double_t nSigma){
   if(!PlotSimplistic) tex->DrawLatex(xText, 0.74*hStack->GetMaximum(), name);
 
   sprintf(name, "Figures/massFit_rap%d_pT%d_cpm%d.pdf", iRapBin, iPTBin, iCPMBin);
-//  gPad->SetLogy(kTRUE);
+  //  gPad->SetLogy(kTRUE);
   if(iRapBin == 0 && iPTBin == 0) gPad->Print(name);
   else if(iRapBin > 0 && iPTBin > 0) gPad->Print(name);
-  
+
 
 
 
   if(iPTBin > -1 && iRapBin > -10 && iCPMBin >- 1){
 
 
-/// produce pedagogical plot
+    /// produce pedagogical plot
 
-  	  cout<<"Plot pedagogical"<<endl;
+    cout<<"Plot pedagogical"<<endl;
 
-      double mean1S_draw = fUps1S->GetParameter(1);
-      double sigma1S_draw = fUps1S->GetParameter(2);
+    double mean1S_draw = fUps1S->GetParameter(1);
+    double sigma1S_draw = fUps1S->GetParameter(2);
 
-      double nSigmaMin=0;
-      double nSigmaMax=2.5;
-      int nIntegrals=100;
+    double nSigmaMin=0;
+    double nSigmaMax=2.5;
+    int nIntegrals=100;
 
-      double nSigmaCenter[nIntegrals];
-      double lSig[nIntegrals];
-      double lBkg[nIntegrals];
-      double lSig_[nIntegrals];
-      double lBkg_[nIntegrals];
-      double lSigOVERBkg[nIntegrals];
+    double nSigmaCenter[nIntegrals];
+    double lSig[nIntegrals];
+    double lBkg[nIntegrals];
+    double lSig_[nIntegrals];
+    double lBkg_[nIntegrals];
+    double lSigOVERBkg[nIntegrals];
 
-	  double maxSig=2.5;
-
-
-	  int whichBinIsAtOne=1/(nSigmaMax-nSigmaMin)*nIntegrals;
-	  cout<<"whichBinIsAtOne "<<whichBinIsAtOne<<endl;
-
-      for(int nIter=0;nIter<nIntegrals;nIter++){
-          nSigmaCenter[nIter]= (nSigmaMax-nSigmaMin)/double(nIntegrals)*double(nIter+1);
-          lSig_[nIter]= fUps1S->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw);
-          lBkg_[nIter]= fBG->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw);
-
-      }
-
-      for(int nIter=0;nIter<nIntegrals;nIter++){
-          nSigmaCenter[nIter]= (nSigmaMax-nSigmaMin)/double(nIntegrals)*double(nIter+1);
-          lSig[nIter]= fUps1S->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw)/lSig_[whichBinIsAtOne-1];
-          lBkg[nIter]= fBG->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw)/lBkg_[whichBinIsAtOne-1];
-      }
-
-      for(int nIter=0;nIter<nIntegrals;nIter++){
-          lSigOVERBkg[nIter]= lSig[nIter]/lBkg[nIter];
-    	  cout<<"lSigOVERBkg[nIter] "<<lSigOVERBkg[nIter]<<endl;
-
-      }
-
-	  TGraphErrors *nSigma_Sig = new TGraphErrors(nIntegrals,nSigmaCenter,lSig,0,0);
-	  TGraphErrors *nSigma_Bkg = new TGraphErrors(nIntegrals,nSigmaCenter,lBkg,0,0);
-	  TGraphErrors *nSigma_SigOVERBkg = new TGraphErrors(nIntegrals,nSigmaCenter,lSigOVERBkg,0,0);
+    double maxSig=2.5;
 
 
-		TCanvas *SystCanvas = new TCanvas("SystCanvas","SystCanvas",1000,800);
-//	  	  gStyle->SetPalette(1);
-//	  	  gPad->SetFillColor(kWhite);
-//	      gPad->SetLeftMargin(0.15);
+    int whichBinIsAtOne=1/(nSigmaMax-nSigmaMin)*nIntegrals;
+    cout<<"whichBinIsAtOne "<<whichBinIsAtOne<<endl;
 
-		SystCanvas->SetFillColor(kWhite);
-		SystCanvas->SetGrid();
-		SystCanvas->GetFrame()->SetFillColor(kWhite);
-		SystCanvas->GetFrame()->SetBorderSize(0);
-		SystCanvas->SetRightMargin(0.05) ;
+    for(int nIter=0;nIter<nIntegrals;nIter++){
+      nSigmaCenter[nIter]= (nSigmaMax-nSigmaMin)/double(nIntegrals)*double(nIter+1);
+      lSig_[nIter]= fUps1S->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw);
+      lBkg_[nIter]= fBG->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw);
+
+    }
+
+    for(int nIter=0;nIter<nIntegrals;nIter++){
+      nSigmaCenter[nIter]= (nSigmaMax-nSigmaMin)/double(nIntegrals)*double(nIter+1);
+      lSig[nIter]= fUps1S->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw)/lSig_[whichBinIsAtOne-1];
+      lBkg[nIter]= fBG->Integral(mean1S_draw-nSigmaCenter[nIter]*sigma1S_draw, mean1S_draw+nSigmaCenter[nIter]*sigma1S_draw)/lBkg_[whichBinIsAtOne-1];
+    }
+
+    for(int nIter=0;nIter<nIntegrals;nIter++){
+      lSigOVERBkg[nIter]= lSig[nIter]/lBkg[nIter];
+      cout<<"lSigOVERBkg[nIter] "<<lSigOVERBkg[nIter]<<endl;
+
+    }
+
+    TGraphErrors *nSigma_Sig = new TGraphErrors(nIntegrals,nSigmaCenter,lSig,0,0);
+    TGraphErrors *nSigma_Bkg = new TGraphErrors(nIntegrals,nSigmaCenter,lBkg,0,0);
+    TGraphErrors *nSigma_SigOVERBkg = new TGraphErrors(nIntegrals,nSigmaCenter,lSigOVERBkg,0,0);
 
 
-		TLegend* plotLegend=new TLegend(0.1,0.7,0.45,0.9);
-		plotLegend->SetFillColor(kWhite);
-		plotLegend->SetTextFont(72);
-		plotLegend->SetTextSize(0.03);
-		plotLegend->SetBorderSize(1);
-		char legendentry[200];
+    TCanvas *SystCanvas = new TCanvas("SystCanvas","SystCanvas",1000,800);
+    //                gStyle->SetPalette(1);
+    //                gPad->SetFillColor(kWhite);
+    //            gPad->SetLeftMargin(0.15);
 
-		double lineWidth=3;
-		char drawGraphStyle[200];
-		sprintf(drawGraphStyle,"LX");
+    SystCanvas->SetFillColor(kWhite);
+    SystCanvas->SetGrid();
+    SystCanvas->GetFrame()->SetFillColor(kWhite);
+    SystCanvas->GetFrame()->SetBorderSize(0);
+    SystCanvas->SetRightMargin(0.05) ;
 
 
-		TH1F *SystHisto = new TH1F;
-		SystHisto = SystCanvas->DrawFrame(nSigmaMin,0,nSigmaMax,maxSig);
-		SystHisto->SetXTitle("n_{#sigma}");
-		SystHisto->GetYaxis()->SetTitleOffset(1.5);
+    TLegend* plotLegend=new TLegend(0.1,0.7,0.45,0.9);
+    plotLegend->SetFillColor(kWhite);
+    plotLegend->SetTextFont(72);
+    plotLegend->SetTextSize(0.03);
+    plotLegend->SetBorderSize(1);
+    char legendentry[200];
 
-		nSigma_Sig->SetLineColor(kGreen-2);
-		nSigma_Sig->SetLineWidth(lineWidth);
-		nSigma_Sig->Draw(drawGraphStyle);
-		sprintf(legendentry,"Signal yield");
-		plotLegend->AddEntry(nSigma_Sig,legendentry,"l");
+    double lineWidth=3;
+    char drawGraphStyle[200];
+    sprintf(drawGraphStyle,"LX");
 
-		nSigma_Bkg->SetLineColor(kBlue);
-		nSigma_Bkg->SetLineWidth(lineWidth);
-		nSigma_Bkg->Draw(drawGraphStyle);
-		sprintf(legendentry,"Background yield");
-		plotLegend->AddEntry(nSigma_Bkg,legendentry,"l");
 
-		nSigma_SigOVERBkg->SetLineColor(kRed);
-		nSigma_SigOVERBkg->SetLineWidth(lineWidth);
-		nSigma_SigOVERBkg->Draw(drawGraphStyle);
-		sprintf(legendentry,"S/B ratio");
-		plotLegend->AddEntry(nSigma_SigOVERBkg,legendentry,"l");
+    TH1F *SystHisto = new TH1F;
+    SystHisto = SystCanvas->DrawFrame(nSigmaMin,0,nSigmaMax,maxSig);
+    SystHisto->SetXTitle("n_{#sigma}");
+    SystHisto->GetYaxis()->SetTitleOffset(1.5);
 
-		plotLegend->Draw();
+    nSigma_Sig->SetLineColor(kGreen-2);
+    nSigma_Sig->SetLineWidth(lineWidth);
+    nSigma_Sig->Draw(drawGraphStyle);
+    sprintf(legendentry,"Signal yield");
+    plotLegend->AddEntry(nSigma_Sig,legendentry,"l");
 
-  	  sprintf(name,"Figures/pedagogical_rap%d_pT%d_cpm%d.pdf",iRapBin,iPTBin, iCPMBin);
-  	  if(iRapBin == 0 && iPTBin == 0) SystCanvas->SaveAs(name);
-	  else if(iRapBin > 0 && iPTBin > 0) SystCanvas->SaveAs(name);
+    nSigma_Bkg->SetLineColor(kBlue);
+    nSigma_Bkg->SetLineWidth(lineWidth);
+    nSigma_Bkg->Draw(drawGraphStyle);
+    sprintf(legendentry,"Background yield");
+    plotLegend->AddEntry(nSigma_Bkg,legendentry,"l");
+
+    nSigma_SigOVERBkg->SetLineColor(kRed);
+    nSigma_SigOVERBkg->SetLineWidth(lineWidth);
+    nSigma_SigOVERBkg->Draw(drawGraphStyle);
+    sprintf(legendentry,"S/B ratio");
+    plotLegend->AddEntry(nSigma_SigOVERBkg,legendentry,"l");
+
+    plotLegend->Draw();
+
+    sprintf(name,"Figures/pedagogical_rap%d_pT%d_cpm%d.pdf",iRapBin,iPTBin, iCPMBin);
+    if(iRapBin == 0 && iPTBin == 0) SystCanvas->SaveAs(name);
+    else if(iRapBin > 0 && iPTBin > 0) SystCanvas->SaveAs(name);
 
   }
 
@@ -270,7 +270,7 @@ void DrawFit(Double_t nSigma){
 #endif
 
 //===============================
-void FitSignalBG(Double_t nSigma){	
+void FitSignalBG(Double_t nSigma){
 
   gStyle->SetOptFit(kTRUE);
   gStyle->SetOptStat(kFALSE);
@@ -292,7 +292,7 @@ void FitSignalBG(Double_t nSigma){
   Double_t a = -2.0e6, b = 5.e5, c = -2.4e4;
   Double_t range_min = 8.6, range_max = 11.4;
   Double_t normY1S = hMass->GetMaximum() / binWidth;
-  Double_t normY2S = 0.3*normY1S; 
+  Double_t normY2S = 0.3*normY1S;
   Double_t normY3S = 0.15*normY1S;
   Double_t sigma1S = 0.1, mean1S = 9.45;
   Double_t alpha = 1.33, n = 6.6; //CB-tail parameters
@@ -311,7 +311,7 @@ void FitSignalBG(Double_t nSigma){
 
   fCONT->GetParameters(fitParBG);
   for(int iPar = 0; iPar < 3; iPar++){
-	  fitParBGerr[iPar]=fCONT->GetParError(iPar);
+    fitParBGerr[iPar]=fCONT->GetParError(iPar);
   }
 
   //2.) fit the peaks on the top of a fixed continuum
@@ -324,9 +324,9 @@ void FitSignalBG(Double_t nSigma){
   fRECO->FixParameter(8,fitParBG[1]);
   fRECO->FixParameter(9,fitParBG[2]);
   //fix alpha and n from the fit to all bins
-/*
+  /*
     Char_t fileName[100];
-	sprintf(fileName, "tmpFiles/CBParameters.root");
+    sprintf(fileName, "tmpFiles/CBParameters.root");
     TFile *fIn = new TFile(fileName);
     TTree *treeIn = (TTree *) gDirectory->Get("CBPars");
     Double_t alphaAll, nAll;
@@ -338,7 +338,7 @@ void FitSignalBG(Double_t nSigma){
     printf("alpha and n from File: %1.3f, %1.3f\n", alphaAll, nAll);
     fRECO->FixParameter(5, nAll);
     fRECO->FixParameter(6, alphaAll);
-*/
+  */
   hMass->Fit(fRECO, "0", "", peak_min, peak_max);
 
   fRECO = hMass->GetFunction(name);
@@ -360,7 +360,7 @@ void FitSignalBG(Double_t nSigma){
   redChi2 = chisqrd/NDF;
   printf("\nChisqrd = %1.3f, NDF = %d, Chisqrd/NDF = %1.3f, Prob = %1.3e\n", chisqrd, NDF, redChi2, TMath::Prob(chisqrd,NDF));
 
-  //save alpha and n parameters if fit is 
+  //save alpha and n parameters if fit is
   //for integrated bins in y and pT:
   SaveCBParameters(alpha, n, fRECO->GetParError(6), fRECO->GetParError(5));
 
@@ -375,7 +375,7 @@ void FitSignalBG(Double_t nSigma){
   printf("=========================================\n");
 
   TF1 *CB[kNbSpecies];
-//  Double_t intCBFit[kNbSpecies]; //integral values of a CB with N=Nfit and fixed alpha, n, sigma, width
+  //  Double_t intCBFit[kNbSpecies]; //integral values of a CB with N=Nfit and fixed alpha, n, sigma, width
 
   for(int iUps = 0; iUps < kNbSpecies; iUps++){
     sprintf(name, "CB_%d", iUps);
@@ -415,7 +415,7 @@ void FitSignalBG(Double_t nSigma){
   massMax[UPS3S] = mean3S + nSigma*sigma3S;
   for(int iSpecies = 0; iSpecies < kNbSpecies; iSpecies++){
     printf("integrating histos between %1.3f and %1.3f GeV (+- %1.1f sigma window)\n",
-	   massMin[iSpecies], massMax[iSpecies], nSigma);
+           massMin[iSpecies], massMax[iSpecies], nSigma);
   }
 
   fUps1S =  new TF1("fUps1S", CBFunction, range_min, range_max, 5);
@@ -440,22 +440,22 @@ void FitSignalBG(Double_t nSigma){
   fUps3S->FixParameter(4, n);
 
 
-//  Double_t nUps[kNbSpecies];
-//  nUps[UPS1S] = fUps1S->Integral(massMin[UPS1S], massMax[UPS1S]);
-//  nUps[UPS2S] = fUps2S->Integral(massMin[UPS2S], massMax[UPS2S]);
-//  nUps[UPS3S] = fUps3S->Integral(massMin[UPS3S], massMax[UPS3S]);
+  //  Double_t nUps[kNbSpecies];
+  //  nUps[UPS1S] = fUps1S->Integral(massMin[UPS1S], massMax[UPS1S]);
+  //  nUps[UPS2S] = fUps2S->Integral(massMin[UPS2S], massMax[UPS2S]);
+  //  nUps[UPS3S] = fUps3S->Integral(massMin[UPS3S], massMax[UPS3S]);
 
   fBG = new TF1("fBG", DrawContinuum, range_min, range_max, 3);
   for(int iPar = 0; iPar < 3; iPar++){
     fBG->FixParameter(iPar, fitParBG[iPar]);
     fBG->SetParError(iPar, fitParBGerr[iPar]);
-//    printf("fBG par %f +- %f\n", fBG->GetParameter(iPar), fBG->GetParError(iPar));
+    //    printf("fBG par %f +- %f\n", fBG->GetParameter(iPar), fBG->GetParError(iPar));
 
   }
-//  Double_t nBG[kNbSpecies];
-//  nBG[UPS1S] = fBG->Integral(massMin[UPS1S], massMax[UPS1S]);
-//  nBG[UPS2S] = fBG->Integral(massMin[UPS2S], massMax[UPS2S]);
-//  nBG[UPS3S] = fBG->Integral(massMin[UPS3S], massMax[UPS3S]);
+  //  Double_t nBG[kNbSpecies];
+  //  nBG[UPS1S] = fBG->Integral(massMin[UPS1S], massMax[UPS1S]);
+  //  nBG[UPS2S] = fBG->Integral(massMin[UPS2S], massMax[UPS2S]);
+  //  nBG[UPS3S] = fBG->Integral(massMin[UPS3S], massMax[UPS3S]);
 
 
   printf("1S: mass = %1.3f, sigma = %1.3f\n", mean1S, sigma1S);
@@ -468,10 +468,10 @@ void FitSignalBG(Double_t nSigma){
   massMaxSB[1] = 11.4;
   printf("--> L mass window: %1.3f < M < %1.3f GeV\n", massMinSB[0], massMaxSB[0]);
   printf("--> R mass window: %1.3f < M < %1.3f GeV\n", massMinSB[1], massMaxSB[1]);
-  
-  
-  
-  
+
+
+
+
   SaveFitPars();
 
 }
@@ -482,7 +482,7 @@ void GetHisto(Char_t *fileNameIn){
   Char_t name[100];
   sprintf(name, "Reco_Onia_mass");
   hMass = (TH1F*) fin->Get(name);
-    
+
   hMass->Rebin(2);
   binWidth = hMass->GetBinWidth(1); //valid only for an equal bin histogram!
   printf("binwidth = %1.2e\n", binWidth);
@@ -490,7 +490,7 @@ void GetHisto(Char_t *fileNameIn){
 
 //==============================
 void SaveCBParameters(Double_t alpha, Double_t n, Double_t alphaErr, Double_t nErr){
-  
+
   Char_t name[100];
   sprintf(name, "tmpFiles/CBpars.root");
   TFile *fOut = new TFile(name, "RECREATE");
@@ -508,7 +508,7 @@ void SaveCBParameters(Double_t alpha, Double_t n, Double_t alphaErr, Double_t nE
 
 //=========================
 void SaveFitPars(){
-  
+
   Char_t name[100];
   sprintf(name, "tmpFiles/massFitParameters_Ups.root");
   TFile *fOut = new TFile(name, "RECREATE");
@@ -520,7 +520,7 @@ void SaveFitPars(){
   treeOut->Branch("fUps3S", "TF1", &fUps3S, bufsize, splitlevel);
   treeOut->Branch("fBG", "TF1", &fBG, bufsize, splitlevel);
   treeOut->Fill();
-  
+
   treeOut->Write();
   fOut->Close();
 }
@@ -543,9 +543,9 @@ Double_t fitPolyCrystal3(Double_t *x, Double_t *par){
   Double_t mean3S = mean1S*(massPDG3S/massPDG1S);
   Double_t sigma2S = sigma1S*(massPDG2S/massPDG1S);
   Double_t sigma3S = sigma1S*(massPDG3S/massPDG1S);
-  
+
   Double_t poly2 = a + b*x[0] + c*x[0]*x[0];
-  
+
   Double_t CB1 = 0.;
   if(((x[0] - mean1S)/sigma1S) > -alpha)
     CB1 = TMath::Exp(-(pow(x[0]-mean1S,2)/(2.*sigma1S*sigma1S)));
@@ -554,7 +554,7 @@ Double_t fitPolyCrystal3(Double_t *x, Double_t *par){
     Double_t B = n / TMath::Abs(alpha) - TMath::Abs(alpha);
     CB1 = A*pow(B - (x[0]-mean1S)/sigma1S, -n);
   }
-  
+
   Double_t CB2 = 0.;
   if(((x[0] - mean2S)/sigma2S) > -alpha)
     CB2 = TMath::Exp(-(pow(x[0]-mean2S,2)/(2.*sigma2S*sigma2S)));
@@ -580,7 +580,7 @@ Double_t fitPolyCrystal3(Double_t *x, Double_t *par){
 
 //==================================
 Double_t fitContinuum(Double_t *x, Double_t *par){
-  
+
   if (x[0] > peak_min && x[0] < peak_max) {
     TF1::RejectPoint();
     return 0;
@@ -592,7 +592,7 @@ Double_t fitContinuum(Double_t *x, Double_t *par){
 
 //==================================
 Double_t DrawContinuum(Double_t *x, Double_t *par){
-  
+
   Double_t result = par[0] + par[1]*x[0] + par[2]*x[0]*x[0];
   result *= binWidth; //correct for the bin width
   return result;
