@@ -1,4 +1,4 @@
-CXX=$(shell root-config --cxx --cflags)
+CXX=$(shell root-config --cxx --cflags) -Wall
 LIBS=$(shell root-config --libs)
 
 %.o : %.cc
