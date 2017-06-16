@@ -40,7 +40,7 @@ int main(int argc, char** argv){
 
   TTree *tree = chain;
 
-  TFile *fOut = fOut = new TFile(fNameOut, "RECREATE");
+  TFile *fOut = new TFile(fNameOut, "RECREATE");
 
   prepareEvents treeReco(tree);
   BookHistosReco();
