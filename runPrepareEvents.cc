@@ -44,7 +44,7 @@ int main(int argc, char** argv){
 
   prepareEvents treeReco(tree);
   BookHistosReco();
-  treeReco.Loop(rejectCowboys, RequestTrigger);
+  treeReco.Loop(RequestTrigger, rejectCowboys);
   printf("writing out the histograms\n");
   WriteHistosReco(fNameOut);
 
