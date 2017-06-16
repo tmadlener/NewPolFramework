@@ -7,18 +7,20 @@ JobID=Upsilon2011_full
 RequestTrigger=1 ###set1
 
 #following flags decide if the step is executed (1) or not (0):
-execute_prepareEvents=0
+execute_prepareEvents=1
 execute_runMassFit=1
 execute_runBoostAngles=1
 execute_runReshuffleNch=1
 
 
 #Real pp 2011 upsilon data tree:
-inputTree1=/hadoop/store/user/cferraio/Polarization_2011pp/TTree_Onia2MuMu_v30_PromptRecoAB_10May2012_Upsi.root
+inputTree1=$HOME/cernbox/PhD/data/Upsilon_Nch_2011/TTree_Onia2MuMu_v30_PromptRecoAB_10May2012_Upsi.root
 
 ############################
 
 rejectCowboys=false
+fidCuts=true
+applyCtauCut=true
 
 JobDir=$HOME/work/PhD/tests_Ups_v_Nch_new_pol/DataFiles/${JobID}
 
@@ -42,8 +44,8 @@ cp runReshuffleNch.cc ${JobDir}/runReshuffleNch.cc
 cp ReshuffleNch.C ${JobDir}/ReshuffleNch.C
 
 ## already processed / prepared data
-selEvents_data=$HOME/cernbox/Chic/NewFitInputFiles/selEvents_data_Ups.root
-cp ${selEvents_data} ${JobDir}/tmpFiles
+# selEvents_data=$HOME/cernbox/Chic/NewFitInputFiles/selEvents_data_Ups.root
+# cp ${selEvents_data} ${JobDir}/tmpFiles
 
 cd ${JobDir}
 
@@ -51,7 +53,7 @@ make
 
 if [ ${execute_prepareEvents} -eq 1 ]
 then
-  ./runPrepareEvents rejectCowboys=${rejectCowboys} ${inputTree1}=inputTree1 RequestTrigger=${RequestTrigger}
+  ./runPrepareEvents rejectCowboys=${rejectCowboys} ${inputTree1}=inputTree1 RequestTrigger=${RequestTrigger} fidCuts=${fidCuts} applyCtauCut=${applyCtauCut}
 fi
 
 if [ ${execute_runMassFit} -eq 1 ]

@@ -18,6 +18,8 @@ int main(int argc, char** argv){
   Char_t *fNameOut = (char*)"tmpFiles/selEvents_data_Ups.root";
   bool rejectCowboys = false;
   bool RequestTrigger=true;
+  bool applyCtauCut = false;
+  bool fidCuts = true;
 
   Char_t const *inputTree1 = "Default";
 
@@ -25,12 +27,20 @@ int main(int argc, char** argv){
 
 
   for( int i=0;i < argc; ++i ) {
-    if(std::string(argv[i]).find("rejectCowboys=false") != std::string::npos) {rejectCowboys=kFALSE;}
-    if(std::string(argv[i]).find("RequestTrigger=1") != std::string::npos) {RequestTrigger=true;}
-    if(std::string(argv[i]).find("inputTree1") != std::string::npos) {inputTrees++; char* inputTree1char = argv[i]; char* inputTree1char2 = strtok (inputTree1char, "="); inputTree1 = inputTree1char2; cout<<"inputTree1 = "<<inputTree1<<endl;}
+    const std::string arg(argv[i]);
+    if(arg.find("rejectCowboys=false") != std::string::npos) {rejectCowboys=kFALSE;}
+    if(arg.find("RequestTrigger=1") != std::string::npos) {RequestTrigger=true;}
+    if(arg.find("inputTree1") != std::string::npos) {inputTrees++; char* inputTree1char = argv[i]; char* inputTree1char2 = strtok (inputTree1char, "="); inputTree1 = inputTree1char2; cout<<"inputTree1 = "<<inputTree1<<endl;}
     //          if(std::string(argv[i]).find("inputTree2") != std::string::npos) {inputTrees++; char* inputTree2char = argv[i]; char* inputTree2char2 = strtok (inputTree2char, "="); inputTree2 = inputTree2char2; cout<<"inputTree2 = "<<inputTree2<<endl;}
     //          if(std::string(argv[i]).find("inputTree3") != std::string::npos) {inputTrees++; char* inputTree3char = argv[i]; char* inputTree3char2 = strtok (inputTree3char, "="); inputTree3 = inputTree3char2; cout<<"inputTree3 = "<<inputTree3<<endl;}
     //          if(std::string(argv[i]).find("inputTree4") != std::string::npos) {inputTrees++; char* inputTree4char = argv[i]; char* inputTree4char2 = strtok (inputTree4char, "="); inputTree4 = inputTree4char2; cout<<"inputTree4 = "<<inputTree4<<endl;}
+
+    if (arg.find("applyCtauCut=true") != std::string::npos) {
+      applyCtauCut = true;
+    }
+    if (arg.find("fidCuts=false") != std::string::npos) {
+      fidCuts = false;
+    }
   }
 
   cout<<"Number of Input Trees = "<<inputTrees<<endl;
@@ -44,7 +54,7 @@ int main(int argc, char** argv){
 
   prepareEvents treeReco(tree);
   BookHistosReco();
-  treeReco.Loop(RequestTrigger, rejectCowboys);
+  treeReco.Loop(RequestTrigger, rejectCowboys, applyCtauCut, fidCuts);
   printf("writing out the histograms\n");
   WriteHistosReco(fNameOut);
 
