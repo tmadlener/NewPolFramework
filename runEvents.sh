@@ -20,15 +20,14 @@ inputTree1=/hadoop/store/user/cferraio/Polarization_2011pp/TTree_Onia2MuMu_v30_P
 
 rejectCowboys=false
 
-JobDir=DataFiles/${JobID}
-mkdir DataFiles
-mkdir ${JobDir}
-mkdir ${JobDir}/Figures
-mkdir ${JobDir}/tmpFiles
-mkdir ${JobDir}/PDF
+JobDir=$HOME/work/PhD/tests_Ups_v_Nch_new_pol/DataFiles/${JobID}
+
+mkdir -p ${JobDir}/Figures
+mkdir -p ${JobDir}/tmpFiles
+mkdir -p ${JobDir}/PDF
+
 
 cp Makefile ${JobDir}/Makefile
-
 
 cp prepareEvents.C ${JobDir}/prepareEvents.C
 cp prepareEvents.h ${JobDir}/prepareEvents.h
@@ -41,6 +40,10 @@ cp runBoostAngles.cc ${JobDir}/runBoostAngles.cc
 cp BoostAngles.C ${JobDir}/BoostAngles.C
 cp runReshuffleNch.cc ${JobDir}/runReshuffleNch.cc
 cp ReshuffleNch.C ${JobDir}/ReshuffleNch.C
+
+## already processed / prepared data
+selEvents_data=$HOME/cernbox/Chic/NewFitInputFiles/selEvents_data_Ups.root
+cp ${selEvents_data} ${JobDir}/tmpFiles
 
 cd ${JobDir}
 
