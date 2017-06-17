@@ -25,11 +25,11 @@ bool ctauCut(const double ctau, const double ctauErr)
 
 bool fiducialCuts(const double pt, const double absEta)
 {
-  if (absEta < 1.2 && pt > 4.5) return true;
-  if (absEta > 1.2 && absEta < 1.4 && pt > 3.5) return true;
-  if (absEta > 1.4 && absEta < 1.6 && pt > 3.0) return true;
+  if (absEta < 1.2 && pt < 4.5) return false;
+  if (absEta > 1.2 && absEta < 1.4 && pt < 3.5) return false;
+  if (absEta > 1.4 && absEta < 1.6 && pt < 3.0) return false;
 
-  return false;
+  return true;
 }
 
 TH1F *Reco_StatEv;
@@ -50,7 +50,7 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys, bool applyCtau
   Long64_t nbytes = 0, nb = 0, countRecEvent = 0;
 
   // nentries=25000000;
-  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+  for (Long64_t jentry=33000000; jentry<nentries;jentry++) {
     if(jentry % 1000000 == 0) printf("event %d out of %d\n", (Int_t) jentry, (Int_t) nentries);
 
 
