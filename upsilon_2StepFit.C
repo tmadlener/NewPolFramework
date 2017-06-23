@@ -478,7 +478,7 @@ void FitSignalBG(Double_t nSigma){
 
 //==============================
 void GetHisto(Char_t *fileNameIn){
-  TFile *fin = new TFile(fileNameIn);
+  TFile *fin = TFile::Open(fileNameIn);
   Char_t name[100];
   sprintf(name, "Reco_Onia_mass");
   hMass = (TH1F*) fin->Get(name);
