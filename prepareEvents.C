@@ -45,6 +45,22 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys, bool applyCtau
   Double_t Nch;
   treeOut->Branch("Nch", &Nch, "Nch/D");
 
+  double ctauOut;
+  treeOut->Branch("ctau", &ctauOut);
+  double ctauErrOut;
+  treeOut->Branch("ctauErr", &ctauErrOut);
+
+  double mupPt;
+  double munPt;
+  double mupEta;
+  double munEta;
+
+  treeOut->Branch("mupPt", &mupPt);
+  treeOut->Branch("munPt", &munPt);
+  treeOut->Branch("mupEta", &mupEta);
+  treeOut->Branch("munEta", &munEta);
+
+
   Long64_t nentries = fChain->GetEntries();
 
   Long64_t nbytes = 0, nb = 0, countRecEvent = 0;
@@ -134,6 +150,7 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys, bool applyCtau
     Reco_StatEv->Fill(5.5);
 
 
+    if (std::isnan(Jpsict)) continue; // sanity check that sometimes is necessary
     if (applyCtauCut && !ctauCut(Jpsict, JpsictErr)) continue;
     Reco_StatEv->Fill(6.5);
 
@@ -152,6 +169,15 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys, bool applyCtau
     Nch=vertexWeight;
     lepP = muPos;
     lepN = muNeg;
+
+    ctauOut = Jpsict;
+    ctauErrOut = JpsictErr;
+
+    mupPt = lepP->Pt();
+    munPt = lepN->Pt();
+    mupEta = lepP->Eta();
+    munEta = lepN->Eta();
+
     treeOut->Fill();
 
   }

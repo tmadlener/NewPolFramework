@@ -101,7 +101,8 @@ void BoostAngles(Int_t nSigma=3){
   printf("--> L mass window: %1.3f < M < %1.3f GeV\n", massMinBG[L], massMaxBG[L]);
   printf("--> R mass window: %1.3f < M < %1.3f GeV\n", massMinBG[R], massMaxBG[R]);
 
-  Double_t nBGSB = fBG->Integral(massMinBG[L],massMaxBG[L])+fBG->Integral(massMinBG[R],massMaxBG[R]);
+  Double_t nBGSB = fBG->Integral(massMinBG[L],massMaxBG[L]) + fBG->Integral(massMinBG[R],massMaxBG[R])
+    + fBG->Integral(massMax1S, massMin2S);
   Double_t nBGSR1S = fBG->Integral(massMin1S,massMax1S);
   Double_t nBGSR2S = fBG->Integral(massMin2S,massMax2S);
   Double_t nBGSR3S = fBG->Integral(massMin3S,massMax3S);
@@ -125,6 +126,22 @@ void BoostAngles(Int_t nSigma=3){
   treeOut->Branch("w_Y3S", &w_Y3S, "w_Y3S/D");
   treeIn->SetBranchAddress("lepP", &lepP);
   treeIn->SetBranchAddress("lepN", &lepN);
+
+  double ctau_, ctauErr_, mupPt_, munPt_, mupEta_, munEta_;
+  treeIn->SetBranchAddress("ctau", &ctau_);
+  treeIn->SetBranchAddress("ctauErr", &ctauErr_);
+  treeIn->SetBranchAddress("munPt", &munPt_);
+  treeIn->SetBranchAddress("mupPt", &mupPt_);
+  treeIn->SetBranchAddress("munEta", &munEta_);
+  treeIn->SetBranchAddress("mupEta", &mupEta_);
+
+  double ctau, ctauErr, mupPt, munPt, mupEta, munEta;
+  treeOut->Branch("ctau", &ctau);
+  treeOut->Branch("ctauErr", &ctauErr);
+  treeOut->Branch("munPt", &munPt);
+  treeOut->Branch("mupPt", &mupPt);
+  treeOut->Branch("munEta", &munEta);
+  treeOut->Branch("mupEta", &mupEta);
 
   //TLorentzVector lepton_DILEP = *lepP;
   /*  const double pbeam_ = 7000.; // exact number irrelevant as long as pbeam >> Mprot
@@ -230,6 +247,12 @@ void BoostAngles(Int_t nSigma=3){
     phi_CS = phi_CS_;
     phi_HX = phi_HX_;
 
+    ctau = ctau_;
+    ctauErr = ctauErr_;
+    mupPt = mupPt_;
+    munPt = munPt_;
+    mupEta = mupEta_;
+    munEta = munEta_;
 
     if(onia_mass > massMin1S && onia_mass < massMax1S) {w_Y1S = 1; w_Y2S = 0; w_Y3S = 0;}
     else if(onia_mass > massMin2S && onia_mass < massMax2S) {w_Y1S = 0; w_Y2S = 1; w_Y3S = 0;}
