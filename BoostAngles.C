@@ -4,6 +4,8 @@
 #include "TRandom3.h"
 #include "TLorentzVector.h"
 
+#define TUPLING_NO_MASS 0
+
 enum{L,R};
 const Int_t kNbSpecies = 3;
 enum{UPS1S, UPS2S, UPS3S};
@@ -25,7 +27,6 @@ void BoostAngles(Int_t nSigma=3){
   //==============================
   //read inputs from input file:
   TFile *fIn = TFile::Open(fileNameIn);
-  TFile *fInmass = TFile::Open(fileNameInMass);
   TLorentzVector *lepP;
   TLorentzVector *lepN;
   TTree *treeIn = (TTree *) fIn->Get("selectedData");
@@ -34,9 +35,12 @@ void BoostAngles(Int_t nSigma=3){
     printf("\n\n\nMissing data.\n\n\n");
   }
 
+#if TUPLING_NO_MASS == 0
+  TFile *fInmass = TFile::Open(fileNameInMass);
   if(fInmass->Get("massFitParameters")==NULL){
     printf("\n\n\nMissing mass params.\n\n\n");
   }
+#endif
 
   //==============================
 
@@ -48,6 +52,7 @@ void BoostAngles(Int_t nSigma=3){
   TTree *treeOut =  new TTree ("selectedData", "Boosted events");
   treeOut->SetAutoSave(0);
 
+#if TUPLING_NO_MASS == 0
   //==========================================================
   //reading fit parameters to establish signal mass window
   //as well as the L and R sideband window for the 3D BG histo
@@ -108,6 +113,8 @@ void BoostAngles(Int_t nSigma=3){
   Double_t nBGSR3S = fBG->Integral(massMin3S,massMax3S);
 
   fInmass->Close();
+#endif
+
   fIn->cd();
 
   lepP = 0; lepN = 0;
@@ -121,9 +128,11 @@ void BoostAngles(Int_t nSigma=3){
   treeOut->Branch("costh_CS", &costh_CS, "costh_CS/D");
   treeOut->Branch("phi_CS", &phi_CS, "phi_CS/D");
   treeOut->Branch("Nch", &Nch, "Nch/D");
+#if TUPLING_NO_MASS == 0
   treeOut->Branch("w_Y1S", &w_Y1S, "w_Y1S/D");
   treeOut->Branch("w_Y2S", &w_Y2S, "w_Y2S/D");
   treeOut->Branch("w_Y3S", &w_Y3S, "w_Y3S/D");
+#endif
   treeIn->SetBranchAddress("lepP", &lepP);
   treeIn->SetBranchAddress("lepN", &lepN);
 
@@ -254,11 +263,12 @@ void BoostAngles(Int_t nSigma=3){
     mupEta = mupEta_;
     munEta = munEta_;
 
+#if TUPLING_NO_MASS == 0
     if(onia_mass > massMin1S && onia_mass < massMax1S) {w_Y1S = 1; w_Y2S = 0; w_Y3S = 0;}
     else if(onia_mass > massMin2S && onia_mass < massMax2S) {w_Y1S = 0; w_Y2S = 1; w_Y3S = 0;}
     else if(onia_mass > massMin3S && onia_mass < massMax3S) {w_Y1S = 0; w_Y2S = 0; w_Y3S = 1;}
     else {w_Y1S = 1 - (nBGSB+nBGSR1S)/nBGSB; w_Y2S = 1 - (nBGSB+nBGSR2S)/nBGSB; w_Y3S = 1 - (nBGSB+nBGSR3S)/nBGSB;}
-
+#endif
     treeOut->Fill(); //stores TLorenzVectors of the two muons
   }
 
