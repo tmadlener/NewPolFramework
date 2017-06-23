@@ -24,8 +24,8 @@ void BoostAngles(Int_t nSigma=3){
   sprintf(fileNameInMass, "tmpFiles/massFitParameters_Ups.root");
   //==============================
   //read inputs from input file:
-  TFile *fIn = new TFile(fileNameIn);
-  TFile *fInmass = new TFile(fileNameInMass);
+  TFile *fIn = TFile::Open(fileNameIn);
+  TFile *fInmass = TFile::Open(fileNameInMass);
   TLorentzVector *lepP;
   TLorentzVector *lepN;
   TTree *treeIn = (TTree *) fIn->Get("selectedData");
