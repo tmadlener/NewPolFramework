@@ -4,7 +4,7 @@ LIBS=$(shell root-config --libs)
 %.o : %.cc
 	$(CXX) -c $<
 
-all: runPrepareEvents runMassFit runBoostAngles runReshuffleNch
+all: runPrepareEvents runMassFit runBoostAngles runReshuffleNch costh_mass
 
 runPrepareEvents: runPrepareEvents.cc
 	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
@@ -17,6 +17,9 @@ runBoostAngles: runBoostAngles.cc
 
 runReshuffleNch: runReshuffleNch.cc
 	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit
+
+costh_mass: massFits_costh.C
+	$(CXX) $^ -o $@ $(LIBS) -lFoam -lMinuit -lRooFit -lRooFitCore
 
 
 clean:

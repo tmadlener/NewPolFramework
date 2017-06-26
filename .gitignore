@@ -2,7 +2,10 @@ runPrepareEvents
 runMassFit
 runBoostAngles
 runReshuffleNch
+costh_mass
 
 *.d
 *.so
 *.pcm
+*.pdf
+*.root
