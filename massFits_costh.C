@@ -94,16 +94,18 @@ std::string getBinName(const V& binning, const size_t bin, const std::string& va
   return std::regex_replace(sstr.str(), std::regex("([0-9]+).([0-9]+)"), "$1p$2");
 }
 
-void costhBinFits(RooWorkspace* ws)
+void costhBinFits(RooWorkspace* ws, const std::string&& fullDataName)
 {
   using namespace RooFit;
 
   constexpr std::array<double, 10> absCosThEdges = {0.0, 0.1, 0.2, 0.3, 0.4,
                                                     0.5, 0.6, 0.7, 0.8, 1.0};
 
-  auto* fullData = ws->data("fullData");
+  auto* fullData = ws->data(fullDataName.c_str());
   auto* model = ws->pdf("fullModel");
   auto* params = (RooArgSet*) model->getParameters(*(ws->var("mass")));
+
+  std::cout << fullData << " " << model << " " << params << "\n";
 
   for (size_t i = 1; i < absCosThEdges.size(); ++i) {
     const auto cutString = getBinExpr(absCosThEdges, i, "TMath::Abs(costh_HX)");
@@ -154,7 +156,11 @@ void massFits_costh(std::string fn)
   auto* params = (RooArgSet*) model->getParameters(mass);
 
 
-  RooFitResult* rlt = model->fitTo(fullData, Minos(false), NumCPU(4), Range("fitRange"),
+  auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("(TMath::Abs(ctau) / ctauErr) < 2.0 && pT > 20.0"));
+  fitData->SetName("fitData");
+  ws->import(*fitData);
+
+  RooFitResult* rlt = model->fitTo(*fitData, Minos(false), NumCPU(4), Range("fitRange"),
                                    Save(true));
 
   ws->saveSnapshot("snap_fullData", *params, true);
@@ -165,8 +171,8 @@ void massFits_costh(std::string fn)
   std::cout << rlt->status() << " " << rlt->covQual() << "\n";
   ws->import(*rlt);
 
-  costhBinFits(ws);
-  ws->writeToFile("ws_fit_result.root");
+  costhBinFits(ws, "fitData");
+  ws->writeToFile("ws_fit_result_ctau2p0_pT20.root");
 
   // plotModel(ws, "snap_fullData");
 }
