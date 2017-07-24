@@ -44,8 +44,8 @@ const double qprobs[nquantiles] = { 0.0015, 0.025, 0.16, 0.50, 0.84, 0.975, 0.99
 double A_vs_x( double x, double x1, double x2, double x3, double A1, double A2, double A3 )
 {
   return   A1*(x-x2)*(x-x3)/((x1-x2)*(x1-x3))
-         + A2*(x-x1)*(x-x3)/((x2-x1)*(x2-x3))
-         + A3*(x-x1)*(x-x2)/((x3-x1)*(x3-x2));
+    + A2*(x-x1)*(x-x3)/((x2-x1)*(x2-x3))
+    + A3*(x-x1)*(x-x2)/((x3-x1)*(x3-x2));
 }
 
 void polPlot(){
@@ -122,26 +122,26 @@ void polPlot(){
 
     for(int j_x = 0; j_x < nPPDslices; j_x++){
 
-       double xval = xmin + xstep * (j_x+0.5);
-       
-       double Ath_x = A_vs_x( xval, x[0], x[1], x[2], Ath1, Ath2, Ath3 );
-       double Aph_x = A_vs_x( xval, x[0], x[1], x[2], Aph1, Aph2, Aph3 );
-       double Atp_x = A_vs_x( xval, x[0], x[1], x[2], Atp1, Atp2, Atp3 );
+      double xval = xmin + xstep * (j_x+0.5);
 
-       double lth = (1. - 3.*Ath_x)/(1. + Ath_x);
-       double lph = Aph_x/(1. + Ath_x);
-       double ltp = Atp_x/(1. + Ath_x);
-       double ltd = (1. - 3.*(Ath_x-Aph_x))/(1. + (Ath_x-Aph_x));
+      double Ath_x = A_vs_x( xval, x[0], x[1], x[2], Ath1, Ath2, Ath3 );
+      double Aph_x = A_vs_x( xval, x[0], x[1], x[2], Aph1, Aph2, Aph3 );
+      double Atp_x = A_vs_x( xval, x[0], x[1], x[2], Atp1, Atp2, Atp3 );
 
-       lth_vs_x->Fill(xval, lth, wPPD);
-       lph_vs_x->Fill(xval, lph, wPPD);
-       ltp_vs_x->Fill(xval, ltp, wPPD);
-       ltd_vs_x->Fill(xval, ltd, wPPD);
+      double lth = (1. - 3.*Ath_x)/(1. + Ath_x);
+      double lph = Aph_x/(1. + Ath_x);
+      double ltp = Atp_x/(1. + Ath_x);
+      double ltd = (1. - 3.*(Ath_x-Aph_x))/(1. + (Ath_x-Aph_x));
 
-       PPDlth[j_x]->Fill(lth, wPPD);
-       PPDlph[j_x]->Fill(lph, wPPD);
-       PPDltp[j_x]->Fill(ltp, wPPD);
-       PPDltd[j_x]->Fill(ltd, wPPD);
+      lth_vs_x->Fill(xval, lth, wPPD);
+      lph_vs_x->Fill(xval, lph, wPPD);
+      ltp_vs_x->Fill(xval, ltp, wPPD);
+      ltd_vs_x->Fill(xval, ltd, wPPD);
+
+      PPDlth[j_x]->Fill(lth, wPPD);
+      PPDlph[j_x]->Fill(lph, wPPD);
+      PPDltp[j_x]->Fill(ltp, wPPD);
+      PPDltd[j_x]->Fill(ltd, wPPD);
     }
   } // end ntuple event loop
   ///////////////////////////////////////////////////////////////
@@ -185,44 +185,44 @@ void polPlot(){
   double* quantile_position = new double[nquantiles];
 
   for(int j_x = 0; j_x < nPPDslices; j_x++){
-  
-     xx[j_x] = xmin + xstep * (j_x+0.5);
 
-     PPDlth[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
-     lth[j_x] = quantile_position[3]; // median
-     dlth1up[j_x] = quantile_position[4] - quantile_position[3];
-     dlth1dw[j_x] = quantile_position[3] - quantile_position[2];
-     dlth2up[j_x] = quantile_position[5] - quantile_position[3];
-     dlth2dw[j_x] = quantile_position[3] - quantile_position[1];
-     dlth3up[j_x] = quantile_position[6] - quantile_position[3];
-     dlth3dw[j_x] = quantile_position[3] - quantile_position[0];
+    xx[j_x] = xmin + xstep * (j_x+0.5);
 
-     PPDlph[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
-     lph[j_x] = quantile_position[3]; // median
-     dlph1up[j_x] = quantile_position[4] - quantile_position[3];
-     dlph1dw[j_x] = quantile_position[3] - quantile_position[2];
-     dlph2up[j_x] = quantile_position[5] - quantile_position[3];
-     dlph2dw[j_x] = quantile_position[3] - quantile_position[1];
-     dlph3up[j_x] = quantile_position[6] - quantile_position[3];
-     dlph3dw[j_x] = quantile_position[3] - quantile_position[0];
+    PPDlth[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
+    lth[j_x] = quantile_position[3]; // median
+    dlth1up[j_x] = quantile_position[4] - quantile_position[3];
+    dlth1dw[j_x] = quantile_position[3] - quantile_position[2];
+    dlth2up[j_x] = quantile_position[5] - quantile_position[3];
+    dlth2dw[j_x] = quantile_position[3] - quantile_position[1];
+    dlth3up[j_x] = quantile_position[6] - quantile_position[3];
+    dlth3dw[j_x] = quantile_position[3] - quantile_position[0];
 
-     PPDltp[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
-     ltp[j_x] = quantile_position[3]; // median
-     dltp1up[j_x] = quantile_position[4] - quantile_position[3];
-     dltp1dw[j_x] = quantile_position[3] - quantile_position[2];
-     dltp2up[j_x] = quantile_position[5] - quantile_position[3];
-     dltp2dw[j_x] = quantile_position[3] - quantile_position[1];
-     dltp3up[j_x] = quantile_position[6] - quantile_position[3];
-     dltp3dw[j_x] = quantile_position[3] - quantile_position[0];
+    PPDlph[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
+    lph[j_x] = quantile_position[3]; // median
+    dlph1up[j_x] = quantile_position[4] - quantile_position[3];
+    dlph1dw[j_x] = quantile_position[3] - quantile_position[2];
+    dlph2up[j_x] = quantile_position[5] - quantile_position[3];
+    dlph2dw[j_x] = quantile_position[3] - quantile_position[1];
+    dlph3up[j_x] = quantile_position[6] - quantile_position[3];
+    dlph3dw[j_x] = quantile_position[3] - quantile_position[0];
 
-     PPDltd[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
-     ltd[j_x] = quantile_position[3]; // median
-     dltd1up[j_x] = quantile_position[4] - quantile_position[3];
-     dltd1dw[j_x] = quantile_position[3] - quantile_position[2];
-     dltd2up[j_x] = quantile_position[5] - quantile_position[3];
-     dltd2dw[j_x] = quantile_position[3] - quantile_position[1];
-     dltd3up[j_x] = quantile_position[6] - quantile_position[3];
-     dltd3dw[j_x] = quantile_position[3] - quantile_position[0];
+    PPDltp[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
+    ltp[j_x] = quantile_position[3]; // median
+    dltp1up[j_x] = quantile_position[4] - quantile_position[3];
+    dltp1dw[j_x] = quantile_position[3] - quantile_position[2];
+    dltp2up[j_x] = quantile_position[5] - quantile_position[3];
+    dltp2dw[j_x] = quantile_position[3] - quantile_position[1];
+    dltp3up[j_x] = quantile_position[6] - quantile_position[3];
+    dltp3dw[j_x] = quantile_position[3] - quantile_position[0];
+
+    PPDltd[j_x]->GetQuantiles(nquantiles, quantile_position, qprobs);
+    ltd[j_x] = quantile_position[3]; // median
+    dltd1up[j_x] = quantile_position[4] - quantile_position[3];
+    dltd1dw[j_x] = quantile_position[3] - quantile_position[2];
+    dltd2up[j_x] = quantile_position[5] - quantile_position[3];
+    dltd2dw[j_x] = quantile_position[3] - quantile_position[1];
+    dltd3up[j_x] = quantile_position[6] - quantile_position[3];
+    dltd3dw[j_x] = quantile_position[3] - quantile_position[0];
 
   }
 
@@ -442,7 +442,5 @@ void polPlot(){
 
   c1->Print( "lambdatilde_vs_x.pdf" );
 
-/////// end
+  /////// end
 }
-
-

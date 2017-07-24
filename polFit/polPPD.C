@@ -64,13 +64,13 @@ const int n_scan_points = 10000;
 const int n_scan_phases = 4;
 
 double scan_progress_vs_phase[n_scan_phases]
-      = { .50, .80, .90, 1.0 }; // must be increasing sequence;
-                               // the last phase completes (100%) the scan
+= { .50, .80, .90, 1.0 }; // must be increasing sequence;
+// the last phase completes (100%) the scan
 
 // How much broader should the Gaussian scan sigma be
 // wrt the last temporary calculation of the sigma of a parameter PPD?
 double scan_sigma_margin_factor[n_scan_phases]
-      = { 1.6, 1.4, 1.3, 1.2 };
+= { 1.6, 1.4, 1.3, 1.2 };
 
 // physical boundaries for parameter scanning:
 // outside them the PPD will not be calculated (= zero)
@@ -152,8 +152,8 @@ double A_vs_x( double* x, double* par )
   double xval = x[0];
 
   return   A1*(xval-x2)*(xval-x3)/((x1-x2)*(x1-x3))
-         + A2*(xval-x1)*(xval-x3)/((x2-x1)*(x2-x3))
-         + A3*(xval-x1)*(xval-x2)/((x3-x1)*(x3-x2));
+    + A2*(xval-x1)*(xval-x3)/((x2-x1)*(x2-x3))
+    + A3*(xval-x1)*(xval-x2)/((x3-x1)*(x3-x2));
 }
 
 const double gPI = TMath::Pi();
@@ -249,11 +249,11 @@ void polPPD(){
 
   double xbinsize_norm = 0.;
   for ( int i_bin = 0; i_bin < n_xbins; i_bin++ ) {
-     xbinsize[i_bin] = pow( kfactor, double(i_bin) );
-     xbinsize_norm += xbinsize[i_bin];
+    xbinsize[i_bin] = pow( kfactor, double(i_bin) );
+    xbinsize_norm += xbinsize[i_bin];
   }
   for ( int i_bin = 0; i_bin < n_xbins; i_bin++ ) {
-     xbin[i_bin+1] = xbin[i_bin] + (xmax-xmin) * xbinsize[i_bin] / xbinsize_norm;
+    xbin[i_bin+1] = xbin[i_bin] + (xmax-xmin) * xbinsize[i_bin] / xbinsize_norm;
   }
 
   // average x value for each bin
@@ -270,15 +270,15 @@ void polPPD(){
     double xval = h_x_data->GetXaxis()->GetBinCenter(i_cell);
 
     for ( int i_bin = 0; i_bin < n_xbins; i_bin++ ) {
-       if ( xval > xbin[i_bin] && xval < xbin[i_bin+1] ) {
-          x_i[i_bin] += xval * cellcontent;
-          x_i_norm[i_bin] += cellcontent;
-       }
+      if ( xval > xbin[i_bin] && xval < xbin[i_bin+1] ) {
+        x_i[i_bin] += xval * cellcontent;
+        x_i_norm[i_bin] += cellcontent;
+      }
     }
   }
 
   for ( int i = 0; i < n_xbins; i++ ) {
-     x_i[i] /= x_i_norm[i];
+    x_i[i] /= x_i_norm[i];
   }
 
   cout << endl;
@@ -286,7 +286,7 @@ void polPPD(){
   cout << endl;
   for ( int i = 0; i < n_xbins; i++ ) {
     cout << "bin " << i << ":  " << xbin[i] << " < x < " << xbin[i+1]
-                                           << ";     <x> = " << x_i[i] << ";     data signal = " << int(x_i_norm[i]) << endl;
+         << ";     <x> = " << x_i[i] << ";     data signal = " << int(x_i_norm[i]) << endl;
   }
 
   delete h_x_data, h_x_ref;
@@ -325,7 +325,7 @@ void polPPD(){
   //////////////////////////////////////////////////
   double pTmin = xmin;
   double pTmax = xmax;
-  
+
   if ( !is_analysis_vs_pT ) { pTmin = pTmin_analysis_not_vs_pT; pTmax = pTmax_analysis_not_vs_pT; }
 
   int ncellspT = pTmax-pTmin;
@@ -374,31 +374,31 @@ void polPPD(){
 
     if ( xx > xmin && xx < xmax && pT > pTmin && pT < pTmax ) {
 
-        x_j[k] = xx;
-        pT_j[k] = pT;
-        costheta_j[k] = costh;
-        phi_j[k] = phi;
-        double costheta2 = costh*costh;
-        costheta2_j[k] = costheta2;
-        sintheta2cos2phi_j[k] = (1. - costheta2) * cos(gPI/90.*phi);
-        sin2thetacosphi_j[k] = 2.*costh*sqrt(1.-costheta2) * cos(gPI/180.*phi);
-        wS_j[k] = wS;
-    
-        n_dataSignal += wS;
+      x_j[k] = xx;
+      pT_j[k] = pT;
+      costheta_j[k] = costh;
+      phi_j[k] = phi;
+      double costheta2 = costh*costh;
+      costheta2_j[k] = costheta2;
+      sintheta2cos2phi_j[k] = (1. - costheta2) * cos(gPI/90.*phi);
+      sin2thetacosphi_j[k] = 2.*costh*sqrt(1.-costheta2) * cos(gPI/180.*phi);
+      wS_j[k] = wS;
 
-        for (int i = 0; i < n_xbins; i++) {
+      n_dataSignal += wS;
 
-          if ( xx > xbin[i] && xx < xbin[i+1] ) { h_costhphi_data[i]->Fill(costh, phi, wS); }
-        }
+      for (int i = 0; i < n_xbins; i++) {
 
-        k++;
+        if ( xx > xbin[i] && xx < xbin[i+1] ) { h_costhphi_data[i]->Fill(costh, phi, wS); }
+      }
+
+      k++;
     }
 
   } // end of data loop
-  
+
   // normalize
   for (int i = 0; i < n_xbins; i++) {
-     h_costhphi_data[i]->Scale( 1./h_costhphi_data[i]->Integral() );
+    h_costhphi_data[i]->Scale( 1./h_costhphi_data[i]->Integral() );
   }
 
   cout << endl;
@@ -426,30 +426,30 @@ void polPPD(){
 
     if ( xx > xmin && xx < xmax  && pT_R > pTmin && pT_R < pTmax ) {
 
-        x_jR[k] = xx;
-        pT_jR[k] = pT_R;
-        costheta_jR[k] = costh_R;
-        phi_jR[k] = phi_R;
-        double costheta2 = costh_R*costh_R;
-        costheta2_jR[k] = costheta2;
-        sintheta2cos2phi_jR[k] = (1. - costheta2) * cos(gPI/90.*phi_R);
-        sin2thetacosphi_jR[k] = 2.*costh_R*sqrt(1.-costheta2) * cos(gPI/180.*phi_R);
-        wS_jR[k] = wS_R;
+      x_jR[k] = xx;
+      pT_jR[k] = pT_R;
+      costheta_jR[k] = costh_R;
+      phi_jR[k] = phi_R;
+      double costheta2 = costh_R*costh_R;
+      costheta2_jR[k] = costheta2;
+      sintheta2cos2phi_jR[k] = (1. - costheta2) * cos(gPI/90.*phi_R);
+      sin2thetacosphi_jR[k] = 2.*costh_R*sqrt(1.-costheta2) * cos(gPI/180.*phi_R);
+      wS_jR[k] = wS_R;
 
-        n_refSignal += wS_R;
+      n_refSignal += wS_R;
 
-        double xpol = pT_R; // variable wrt which the reference polarization is known to change
-        double wUnpol = ( 3.+lambdath_ref(xpol) ) /3. /(1 + lambdath_ref(xpol) * costheta2
-                                                   + lambdaph_ref(xpol) * sintheta2cos2phi_jR[k]
-                                                   + lambdatp_ref(xpol) * sin2thetacosphi_jR[k] );
-         // weight to eliminate the known polarization of the reference
+      double xpol = pT_R; // variable wrt which the reference polarization is known to change
+      double wUnpol = ( 3.+lambdath_ref(xpol) ) /3. /(1 + lambdath_ref(xpol) * costheta2
+                                                      + lambdaph_ref(xpol) * sintheta2cos2phi_jR[k]
+                                                      + lambdatp_ref(xpol) * sin2thetacosphi_jR[k] );
+      // weight to eliminate the known polarization of the reference
 
-        h_pT_ref->Fill(pT_R, wS_R * wUnpol); // this histogram is not changed by iterations
+      h_pT_ref->Fill(pT_R, wS_R * wUnpol); // this histogram is not changed by iterations
 
-        k++;
+      k++;
     }
   } // end of reference loop
-  
+
   // normalize
   h_pT_ref->Scale( 1./ h_pT_ref->Integral() );
 
@@ -481,12 +481,12 @@ void polPPD(){
 
   for ( int i = 0; i < 3; i++ ) {
 
-     Ath[i] = 1./3.; // longitudinal fraction = 1/3 in the unpolarized case
-     Aph[i] = 0.;
-     Atp[i] = 0.;
+    Ath[i] = 1./3.; // longitudinal fraction = 1/3 in the unpolarized case
+    Aph[i] = 0.;
+    Atp[i] = 0.;
   }
 
-  
+
   // parameters of the fine-x-binned fit
   // abscissas were defined above as:   double* x_i  = new double[n_xbins];
   double* Ath_i    = new double[n_xbins];
@@ -499,11 +499,11 @@ void polPPD(){
 
   for ( int i = 0; i < n_xbins; i++ ) {
 
-     // starting polarization parameter values for first fit
+    // starting polarization parameter values for first fit
 
-     Ath_i[i] = 1./3.; // longitudinal fraction = 1/3 in the unpolarized case
-     Aph_i[i] = 0.;
-     Atp_i[i] = 0.;
+    Ath_i[i] = 1./3.; // longitudinal fraction = 1/3 in the unpolarized case
+    Aph_i[i] = 0.;
+    Atp_i[i] = 0.;
   }
 
   double* ex = new double[20];
@@ -514,31 +514,31 @@ void polPPD(){
   TF2* polFit_A = new TF2("polFit_A",func_pol_A,-1.,1.,-180.,180.,4); // main fitting function
 
   TF1* Ath_vs_x = new TF1("Ath_vs_x", A_vs_x, xmin, xmax, 4 + npar_th );
-       Ath_vs_x->FixParameter(0, npar_th);
-       Ath_vs_x->FixParameter(1, x[0]);
-       Ath_vs_x->FixParameter(2, x[1]);
-       Ath_vs_x->FixParameter(3, x[2]);
-       Ath_vs_x->SetParameter(4, Ath[0]);
-       if ( npar_th > 1 ) Ath_vs_x->SetParameter(5, Ath[1]);
-       if ( npar_th > 2 ) Ath_vs_x->SetParameter(6, Ath[2]);
+  Ath_vs_x->FixParameter(0, npar_th);
+  Ath_vs_x->FixParameter(1, x[0]);
+  Ath_vs_x->FixParameter(2, x[1]);
+  Ath_vs_x->FixParameter(3, x[2]);
+  Ath_vs_x->SetParameter(4, Ath[0]);
+  if ( npar_th > 1 ) Ath_vs_x->SetParameter(5, Ath[1]);
+  if ( npar_th > 2 ) Ath_vs_x->SetParameter(6, Ath[2]);
 
   TF1* Aph_vs_x = new TF1("Aph_vs_x", A_vs_x, xmin, xmax, 4 + npar_ph );
-       Aph_vs_x->FixParameter(0, npar_ph);
-       Aph_vs_x->FixParameter(1, x[0]);
-       Aph_vs_x->FixParameter(2, x[1]);
-       Aph_vs_x->FixParameter(3, x[2]);
-       Aph_vs_x->SetParameter(4, Aph[0]);
-       if ( npar_ph > 1 ) Aph_vs_x->SetParameter(5, Aph[1]);
-       if ( npar_ph > 2 ) Aph_vs_x->SetParameter(6, Aph[2]);
+  Aph_vs_x->FixParameter(0, npar_ph);
+  Aph_vs_x->FixParameter(1, x[0]);
+  Aph_vs_x->FixParameter(2, x[1]);
+  Aph_vs_x->FixParameter(3, x[2]);
+  Aph_vs_x->SetParameter(4, Aph[0]);
+  if ( npar_ph > 1 ) Aph_vs_x->SetParameter(5, Aph[1]);
+  if ( npar_ph > 2 ) Aph_vs_x->SetParameter(6, Aph[2]);
 
   TF1* Atp_vs_x = new TF1("Atp_vs_x", A_vs_x, xmin, xmax, 4 + npar_tp );
-       Atp_vs_x->FixParameter(0, npar_tp);
-       Atp_vs_x->FixParameter(1, x[0]);
-       Atp_vs_x->FixParameter(2, x[1]);
-       Atp_vs_x->FixParameter(3, x[2]);
-       Atp_vs_x->SetParameter(4, Atp[0]);
-       if ( npar_tp > 1 ) Atp_vs_x->SetParameter(5, Atp[1]);
-       if ( npar_tp > 2 ) Atp_vs_x->SetParameter(6, Atp[2]);
+  Atp_vs_x->FixParameter(0, npar_tp);
+  Atp_vs_x->FixParameter(1, x[0]);
+  Atp_vs_x->FixParameter(2, x[1]);
+  Atp_vs_x->FixParameter(3, x[2]);
+  Atp_vs_x->SetParameter(4, Atp[0]);
+  if ( npar_tp > 1 ) Atp_vs_x->SetParameter(5, Atp[1]);
+  if ( npar_tp > 2 ) Atp_vs_x->SetParameter(6, Atp[2]);
 
   TF1* pTweight = new TF1("pTweight",func_pT_weight,pTmin,pTmax,2);
 
@@ -553,22 +553,22 @@ void polPPD(){
     //////// fill DATA pT distribution, reweighted for the current best knowledge of the data polarization (step 0: unpolarized)
     for ( int j_ev = 0; j_ev < numDataEvts; j_ev++ ) { //loop only over array of analyzed events
 
-        // weight to eliminate the previously measured polarization (iterative method)
-        // used ONLY to produce the pT-distribution ratio data/reference in the zero-polarization hypothesis
-        // At first iteration weight is 1; in Nch-dependent analysis there must not be following iterations,
-        // so no weight is ever applied to account for data polarization
+      // weight to eliminate the previously measured polarization (iterative method)
+      // used ONLY to produce the pT-distribution ratio data/reference in the zero-polarization hypothesis
+      // At first iteration weight is 1; in Nch-dependent analysis there must not be following iterations,
+      // so no weight is ever applied to account for data polarization
 
-        double pT = pT_j[j_ev];
+      double pT = pT_j[j_ev];
 
-        double Ath_curr = Ath_vs_x->Eval(pT);
-        double Aph_curr = Aph_vs_x->Eval(pT);
-        double Atp_curr = Atp_vs_x->Eval(pT);
+      double Ath_curr = Ath_vs_x->Eval(pT);
+      double Aph_curr = Aph_vs_x->Eval(pT);
+      double Atp_curr = Atp_vs_x->Eval(pT);
 
-        double wUnpol = 4./3. / ( 1. + Ath_curr + (1.-3.*Ath_curr) * costheta2_j[j_ev]
-                                     + Aph_curr * sintheta2cos2phi_j[j_ev]
-                                     + Atp_curr * sin2thetacosphi_j[j_ev] );
+      double wUnpol = 4./3. / ( 1. + Ath_curr + (1.-3.*Ath_curr) * costheta2_j[j_ev]
+                                + Aph_curr * sintheta2cos2phi_j[j_ev]
+                                + Atp_curr * sin2thetacosphi_j[j_ev] );
 
-        h_pT_data->Fill( pT, wS_j[j_ev] * wUnpol );
+      h_pT_data->Fill( pT, wS_j[j_ev] * wUnpol );
     } // end of data loop to fill weighted pT distribution
 
     h_pT_data->Scale( 1./ h_pT_data->Integral() );
@@ -598,42 +598,42 @@ void polPPD(){
     ////////// fill REF costh-phi histograms (with full pT-reweighting)
 
     for (int i = 0; i < n_xbins; i++) {
-       h_costhphi_ref[i]->Reset();  // histograms re-filled at each iteration
-       h_costhphi_ratio[i] = (TH2D*) h_costhphi_data[i]->Clone(); // also clone data histograms into the histos for the ratio
+      h_costhphi_ref[i]->Reset();  // histograms re-filled at each iteration
+      h_costhphi_ratio[i] = (TH2D*) h_costhphi_data[i]->Clone(); // also clone data histograms into the histos for the ratio
     }
 
     for ( int j_ev = 0; j_ev < numRefEvts; j_ev++ ) { //loop only over array of analyzed events
 
-       double xx = x_jR[j_ev];
-  
-       double pT = pT_jR[j_ev];
-  
-       double xpol = pT; // variable wrt which the reference polarization is known to change
-       double wUnpol = ( 3.+lambdath_ref(xpol) ) /3. /(1 + lambdath_ref(xpol) * costheta2_jR[j_ev]
-                                                         + lambdaph_ref(xpol) * sintheta2cos2phi_jR[j_ev]
-                                                         + lambdatp_ref(xpol) * sin2thetacosphi_jR[j_ev] );
-           // weight to eliminate the known polarization of the reference
-  
-       double wpT = pTweight->Eval(pT);
-           // pT weight
+      double xx = x_jR[j_ev];
 
-       if ( ! apply_pT_weight_to_ref ) wpT = 1.;
+      double pT = pT_jR[j_ev];
 
-       double weight = wS_jR[j_ev] * wUnpol * wpT;
+      double xpol = pT; // variable wrt which the reference polarization is known to change
+      double wUnpol = ( 3.+lambdath_ref(xpol) ) /3. /(1 + lambdath_ref(xpol) * costheta2_jR[j_ev]
+                                                      + lambdaph_ref(xpol) * sintheta2cos2phi_jR[j_ev]
+                                                      + lambdatp_ref(xpol) * sin2thetacosphi_jR[j_ev] );
+      // weight to eliminate the known polarization of the reference
 
-       for (int i_bin = 0; i_bin < n_xbins; i_bin++) {
+      double wpT = pTweight->Eval(pT);
+      // pT weight
 
-         if ( xx > xbin[i_bin] && xx < xbin[i_bin+1] ) {
-            h_costhphi_ref[i_bin]->Fill(costheta_jR[j_ev], phi_jR[j_ev], weight);
-         }
-       }
+      if ( ! apply_pT_weight_to_ref ) wpT = 1.;
+
+      double weight = wS_jR[j_ev] * wUnpol * wpT;
+
+      for (int i_bin = 0; i_bin < n_xbins; i_bin++) {
+
+        if ( xx > xbin[i_bin] && xx < xbin[i_bin+1] ) {
+          h_costhphi_ref[i_bin]->Fill(costheta_jR[j_ev], phi_jR[j_ev], weight);
+        }
+      }
     } // end of reference-events loop to fill weighted costh-phi histograms
 
     // normalize reference (data histograms already normalized) and calculate
     // ratios of data/reference histograms to be fitted
     for (int i = 0; i < n_xbins; i++) {
-       h_costhphi_ref[i]->Scale( 1./h_costhphi_ref[i]->Integral() );
-       h_costhphi_ratio[i]->Divide(h_costhphi_ref[i]);
+      h_costhphi_ref[i]->Scale( 1./h_costhphi_ref[i]->Integral() );
+      h_costhphi_ratio[i]->Divide(h_costhphi_ref[i]);
     }
 
 
@@ -643,14 +643,14 @@ void polPPD(){
     // polarization fits in the n_xbins
 
     for (int i = 0; i < n_xbins; i++) {
-      
+
       polFit_A->SetParameter(0, 1.);
       polFit_A->SetParameter(1, Ath_i[i]);
       polFit_A->SetParameter(2, Aph_i[i]);
       polFit_A->SetParameter(3, Atp_i[i]);
 
       h_costhphi_ratio[i]->Fit("polFit_A","IN0Q");
-      
+
       Ath_i[i] = polFit_A->GetParameter(1);
       Aph_i[i] = polFit_A->GetParameter(2);
       Atp_i[i] = polFit_A->GetParameter(3);
@@ -721,23 +721,23 @@ void polPPD(){
     Ath[0]  = Ath_vs_x->GetParameter(4);
     dAth[0] = Ath_vs_x->GetParError(4);
     if ( npar_th > 1 ) { Ath[1]  = Ath_vs_x->GetParameter(5);
-                        dAth[1]  = Ath_vs_x->GetParError(5);  }
+      dAth[1]  = Ath_vs_x->GetParError(5);  }
     if ( npar_th > 2 ) { Ath[2]  = Ath_vs_x->GetParameter(6);
-                        dAth[2]  = Ath_vs_x->GetParError(6);  }
+      dAth[2]  = Ath_vs_x->GetParError(6);  }
 
     Aph[0]  = Aph_vs_x->GetParameter(4);
     dAph[0] = Aph_vs_x->GetParError(4);
     if ( npar_th > 1 ) { Aph[1]  = Aph_vs_x->GetParameter(5);
-                        dAph[1]  = Aph_vs_x->GetParError(5);  }
+      dAph[1]  = Aph_vs_x->GetParError(5);  }
     if ( npar_th > 2 ) { Aph[2]  = Aph_vs_x->GetParameter(6);
-                        dAph[2]  = Aph_vs_x->GetParError(6);  }
+      dAph[2]  = Aph_vs_x->GetParError(6);  }
 
     Atp[0]  = Atp_vs_x->GetParameter(4);
     dAtp[0] = Atp_vs_x->GetParError(4);
     if ( npar_th > 1 ) { Atp[1]  = Atp_vs_x->GetParameter(5);
-                        dAtp[1]  = Atp_vs_x->GetParError(5);  }
+      dAtp[1]  = Atp_vs_x->GetParError(5);  }
     if ( npar_th > 2 ) { Atp[2]  = Atp_vs_x->GetParameter(6);
-                        dAtp[2]  = Atp_vs_x->GetParError(6);  }
+      dAtp[2]  = Atp_vs_x->GetParError(6);  }
 
 
   } // end of iterations
@@ -758,24 +758,24 @@ void polPPD(){
 
   for ( int i = 0; i < npar_th; i++ ) {
 
-     lth[i]  = (1. - 3.* Ath[i]) / ( 1. + Ath[i] );
-     dlth[i] = 4. * dAth[i] / pow( 1. + Ath[i], 2. );
+    lth[i]  = (1. - 3.* Ath[i]) / ( 1. + Ath[i] );
+    dlth[i] = 4. * dAth[i] / pow( 1. + Ath[i], 2. );
   }
 
   for ( int i = 0; i < npar_ph; i++ ) {
 
-     double Ath_x = Ath_vs_x->Eval(x[i]);
+    double Ath_x = Ath_vs_x->Eval(x[i]);
 
-     lph[i]  =  Aph[i] / ( 1. + Ath_x );
-     dlph[i] = dAph[i] / ( 1. + Ath_x );
+    lph[i]  =  Aph[i] / ( 1. + Ath_x );
+    dlph[i] = dAph[i] / ( 1. + Ath_x );
   }
-  
+
   for ( int i = 0; i < npar_tp; i++ ) {
 
-     double Ath_x = Ath_vs_x->Eval(x[i]);
+    double Ath_x = Ath_vs_x->Eval(x[i]);
 
-     ltp[i]  =  Atp[i] / ( 1. + Ath_x );
-     dltp[i] = dAtp[i] / ( 1. + Ath_x );
+    ltp[i]  =  Atp[i] / ( 1. + Ath_x );
+    dltp[i] = dAtp[i] / ( 1. + Ath_x );
   }
 
   TCanvas* canvas3 = new TCanvas("canvas3","Lambdas",10,20,300,450);
@@ -845,20 +845,20 @@ void polPPD(){
 
   for ( int i = 0; i < npar_th; i++ ) {
 
-     dAth[i] *= scan_sigma_margin_factor[0];
-     if ( dAth[i] < deltaAth_min ) dAth[i] = deltaAth_min;
+    dAth[i] *= scan_sigma_margin_factor[0];
+    if ( dAth[i] < deltaAth_min ) dAth[i] = deltaAth_min;
   }
 
   for ( int i = 0; i < npar_ph; i++ ) {
 
-     dAph[i] *= scan_sigma_margin_factor[0];
-     if ( dAph[i] < deltaAph_min ) dAph[i] = deltaAph_min;
+    dAph[i] *= scan_sigma_margin_factor[0];
+    if ( dAph[i] < deltaAph_min ) dAph[i] = deltaAph_min;
   }
 
   for ( int i = 0; i < npar_tp; i++ ) {
 
-     dAtp[i] *= scan_sigma_margin_factor[0];
-     if ( dAtp[i] < deltaAtp_min ) dAtp[i] = deltaAtp_min;
+    dAtp[i] *= scan_sigma_margin_factor[0];
+    if ( dAtp[i] < deltaAtp_min ) dAtp[i] = deltaAtp_min;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////
@@ -922,12 +922,12 @@ void polPPD(){
 
     double xpol = pT; // variable wrt which the reference polarization is known to change
     double wUnpol = ( 3.+lambdath_ref(xpol) ) /3. /(1 + lambdath_ref(xpol) * costheta2
-                                                       + lambdaph_ref(xpol) * sintheta2cos2phi
-                                                       + lambdatp_ref(xpol) * sin2thetacosphi );
-        // weight to eliminate the known polarization of the reference
+                                                    + lambdaph_ref(xpol) * sintheta2cos2phi
+                                                    + lambdatp_ref(xpol) * sin2thetacosphi );
+    // weight to eliminate the known polarization of the reference
 
     double wpT = pTweight->Eval(pT);
-        // pT weight
+    // pT weight
 
     if ( ! apply_pT_weight_to_ref ) wpT = 1.;
 
@@ -1027,8 +1027,8 @@ void polPPD(){
 
   const int n_ref_quantities = 11; // n. of reference quantities to be varied
   const int n_variations_of_reference = 35; // n. of systematic variations considered for the reference quantities
-                                     // (+-1 sigma for one parameter at a time, plus no variation)
-                                     // a different PPD will be calculated (and independently normalized) for each case
+  // (+-1 sigma for one parameter at a time, plus no variation)
+  // a different PPD will be calculated (and independently normalized) for each case
 
   double* avg_x_var                 = new double[n_variations_of_reference];
   double* avg_x2_var                = new double[n_variations_of_reference];
@@ -1048,7 +1048,7 @@ void polPPD(){
 
   // each "test" (matrix line) = 1 sigma variation of one quantity at a time; test zero = no variation
   double variation[n_variations_of_reference][n_ref_quantities] = { { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
-                                                 // some correlated variations:
+                                                                    // some correlated variations:
                                                                     { 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
                                                                     {-1.,-1., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
                                                                     { 0., 0., 1., 1., 1., 0., 0., 0., 0., 0., 0. },
@@ -1061,7 +1061,7 @@ void polPPD(){
                                                                     {-1., 0., 0.,-1., 0., 0.,-1., 0., 0.,-1., 0. },
                                                                     { 0., 1., 0., 0., 1., 0., 0., 1., 0., 0., 1. },
                                                                     { 0.,-1., 0., 0.,-1., 0., 0.,-1., 0., 0.,-1. },
-                                                 // all fully uncorrelated variations:                   
+                                                                    // all fully uncorrelated variations:
                                                                     { 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
                                                                     {-1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
                                                                     { 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0. },
@@ -1129,7 +1129,7 @@ void polPPD(){
 
   double* lnPPD_max = new double[n_variations_of_reference];
   memset(lnPPD_max, -1.E20, n_variations_of_reference*sizeof(double) );
-         // maximum value of PPD for each type of systematic variation
+  // maximum value of PPD for each type of systematic variation
 
   double x1 = x[0];
   double x2 = x[1];
@@ -1176,12 +1176,12 @@ void polPPD(){
     Ath1 = gRandom->Gaus(Ath[0], dAth[0]); ln_scan_weight -= log( TMath::Gaus(Ath1, Ath[0], dAth[0]) );
     Ath2 = Ath1; Ath3 = Ath1;
     if ( npar_th == 2 ) { do { Ath2 = gRandom->Gaus(Ath[1], dAth[1]); } while ( Ath2 > Ath_max || Ath2 < Ath_min );
-                          ln_scan_weight -= log( TMath::Gaus(Ath2, Ath[1], dAth[1]) );
-                          Ath3 = Ath1 + (x3-x1) * (Ath2-Ath1) / (x2-x1); }
+      ln_scan_weight -= log( TMath::Gaus(Ath2, Ath[1], dAth[1]) );
+      Ath3 = Ath1 + (x3-x1) * (Ath2-Ath1) / (x2-x1); }
     else if ( npar_th == 3 ) { do { Ath2 = gRandom->Gaus(Ath[1], dAth[1]); } while ( Ath2 > Ath_max || Ath2 < Ath_min );
-                               ln_scan_weight -= log( TMath::Gaus(Ath2, Ath[1], dAth[1]) );
-                               do { Ath3 = gRandom->Gaus(Ath[2], dAth[2]); } while ( Ath3 > Ath_max || Ath3 < Ath_min );
-                               ln_scan_weight -= log( TMath::Gaus(Ath3, Ath[2], dAth[2]) ); }
+      ln_scan_weight -= log( TMath::Gaus(Ath2, Ath[1], dAth[1]) );
+      do { Ath3 = gRandom->Gaus(Ath[2], dAth[2]); } while ( Ath3 > Ath_max || Ath3 < Ath_min );
+      ln_scan_weight -= log( TMath::Gaus(Ath3, Ath[2], dAth[2]) ); }
     Ath1_arr[i_scan] = Ath1;
     Ath2_arr[i_scan] = Ath2;
     Ath3_arr[i_scan] = Ath3;
@@ -1190,12 +1190,12 @@ void polPPD(){
     Aph1 = gRandom->Gaus(Aph[0], dAph[0]); ln_scan_weight -= log( TMath::Gaus(Aph1, Aph[0], dAph[0]) );
     Aph2 = Aph1; Aph3 = Aph1;
     if ( npar_ph == 2 ) { do { Aph2 = gRandom->Gaus(Aph[1], dAph[1]); } while ( Aph2 > Aph_max || Aph2 < Aph_min );
-                          ln_scan_weight -= log( TMath::Gaus(Aph2, Aph[1], dAph[1]) );
-                          Aph3 = Aph1 + (x3-x1) * (Aph2-Aph1) / (x2-x1); }
+      ln_scan_weight -= log( TMath::Gaus(Aph2, Aph[1], dAph[1]) );
+      Aph3 = Aph1 + (x3-x1) * (Aph2-Aph1) / (x2-x1); }
     else if ( npar_ph == 3 ) { do { Aph2 = gRandom->Gaus(Aph[1], dAph[1]); } while ( Aph2 > Aph_max || Aph2 < Aph_min );
-                               ln_scan_weight -= log( TMath::Gaus(Aph2, Aph[1], dAph[1]) );
-                               do { Aph3 = gRandom->Gaus(Aph[2], dAph[2]); } while ( Aph3 > Aph_max || Aph3 < Aph_min );
-                               ln_scan_weight -= log( TMath::Gaus(Aph3, Aph[2], dAph[2]) ); }
+      ln_scan_weight -= log( TMath::Gaus(Aph2, Aph[1], dAph[1]) );
+      do { Aph3 = gRandom->Gaus(Aph[2], dAph[2]); } while ( Aph3 > Aph_max || Aph3 < Aph_min );
+      ln_scan_weight -= log( TMath::Gaus(Aph3, Aph[2], dAph[2]) ); }
     Aph1_arr[i_scan] = Aph1;
     Aph2_arr[i_scan] = Aph2;
     Aph3_arr[i_scan] = Aph3;
@@ -1204,12 +1204,12 @@ void polPPD(){
     Atp1 = gRandom->Gaus(Atp[0], dAtp[0]); ln_scan_weight -= log( TMath::Gaus(Atp1, Atp[0], dAtp[0]) );
     Atp2 = Atp1; Atp3 = Atp1;
     if ( npar_tp == 2 ) { do { Atp2 = gRandom->Gaus(Atp[1], dAtp[1]); } while ( Atp2 > Atp_max || Atp2 < Atp_min );
-                          ln_scan_weight -= log( TMath::Gaus(Atp2, Atp[1], dAtp[1]) );
-                          Atp3 = Atp1 + (x3-x1) * (Atp2-Atp1) / (x2-x1); }
+      ln_scan_weight -= log( TMath::Gaus(Atp2, Atp[1], dAtp[1]) );
+      Atp3 = Atp1 + (x3-x1) * (Atp2-Atp1) / (x2-x1); }
     else if ( npar_tp == 3 ) { do { Atp2 = gRandom->Gaus(Atp[1], dAtp[1]); } while ( Atp2 > Atp_max || Atp2 < Atp_min );
-                               ln_scan_weight -= log( TMath::Gaus(Atp2, Atp[1], dAtp[1]) );
-                               do { Atp3 = gRandom->Gaus(Atp[2], dAtp[2]); } while ( Atp3 > Atp_max || Atp3 < Atp_min );
-                               ln_scan_weight -= log( TMath::Gaus(Atp3, Atp[2], dAtp[2]) ); }
+      ln_scan_weight -= log( TMath::Gaus(Atp2, Atp[1], dAtp[1]) );
+      do { Atp3 = gRandom->Gaus(Atp[2], dAtp[2]); } while ( Atp3 > Atp_max || Atp3 < Atp_min );
+      ln_scan_weight -= log( TMath::Gaus(Atp3, Atp[2], dAtp[2]) ); }
     Atp1_arr[i_scan] = Atp1;
     Atp2_arr[i_scan] = Atp2;
     Atp3_arr[i_scan] = Atp3;
@@ -1241,9 +1241,9 @@ void polPPD(){
       Atp_j = a_tp  + b_tp * xval  + c_tp * xval2;
 
       lnPPD +=  wS_j[j] * log(     1. + Ath_j
-                               + ( 1. - 3. * Ath_j ) * costheta2_j[j]
-                               +        Aph_j        * sintheta2cos2phi_j[j]
-                               +        Atp_j        * sin2thetacosphi_j[j]  );
+                                   + ( 1. - 3. * Ath_j ) * costheta2_j[j]
+                                   +        Aph_j        * sintheta2cos2phi_j[j]
+                                   +        Atp_j        * sin2thetacosphi_j[j]  );
     }////////////////////////////////////////////////////////////////////////////////
 
     lnPPD += ln_scan_weight;
@@ -1252,149 +1252,149 @@ void polPPD(){
 
     for ( int i_variation = 0; i_variation < n_variations_of_reference; i_variation++ ) {
 
-       double lnPPD_temp = lnPPD
-                         - n_dataSignal* log(     1. + a_th + b_th * avg_x_var[i_variation] + c_th * avg_x2_var[i_variation]
-                                              + ( 1. - 3. * a_th ) * avg_costheta2_var[i_variation]
-                                                       - 3. * b_th * avg_xcostheta2_var[i_variation]
-                                                       - 3. * c_th * avg_x2costheta2_var[i_variation]
+      double lnPPD_temp = lnPPD
+        - n_dataSignal* log(     1. + a_th + b_th * avg_x_var[i_variation] + c_th * avg_x2_var[i_variation]
+                                 + ( 1. - 3. * a_th ) * avg_costheta2_var[i_variation]
+                                 - 3. * b_th * avg_xcostheta2_var[i_variation]
+                                 - 3. * c_th * avg_x2costheta2_var[i_variation]
 
-                                                            + a_ph * avg_sintheta2cos2phi_var[i_variation]
-                                                            + b_ph * avg_xsintheta2cos2phi_var[i_variation]
-                                                            + c_ph * avg_x2sintheta2cos2phi_var[i_variation]
+                                 + a_ph * avg_sintheta2cos2phi_var[i_variation]
+                                 + b_ph * avg_xsintheta2cos2phi_var[i_variation]
+                                 + c_ph * avg_x2sintheta2cos2phi_var[i_variation]
 
-                                                            + a_tp * avg_sin2thetacosphi_var[i_variation]
-                                                            + b_tp * avg_xsin2thetacosphi_var[i_variation]
-                                                            + c_tp * avg_x2sin2thetacosphi_var[i_variation]    );
+                                 + a_tp * avg_sin2thetacosphi_var[i_variation]
+                                 + b_tp * avg_xsin2thetacosphi_var[i_variation]
+                                 + c_tp * avg_x2sin2thetacosphi_var[i_variation]    );
 
-       lnPPD_arr[i_scan][i_variation] = lnPPD_temp;
+      lnPPD_arr[i_scan][i_variation] = lnPPD_temp;
 
-       if ( lnPPD_temp > lnPPD_max[i_variation] ) lnPPD_max[i_variation] = lnPPD_temp;
+      if ( lnPPD_temp > lnPPD_max[i_variation] ) lnPPD_max[i_variation] = lnPPD_temp;
     }
 
     // check change of phase
 
     bool end_of_phase =
 
-    ( double(i_scan)/double(n_scan_points) > scan_progress_vs_phase[i_scan_phase] );
+      ( double(i_scan)/double(n_scan_points) > scan_progress_vs_phase[i_scan_phase] );
 
     // at the end of each scanning phase, calculate averages and sigmas
     // to redefine an optimized Gaussian scanning width
 
     if ( end_of_phase ) {
 
-       i_scan_phase = i_scan_phase + 1;
+      i_scan_phase = i_scan_phase + 1;
 
-       // re-scan so-far calculated PPD values, normalize them and calculate the
-       // temporary averages and sigmas of the parameter distributions
+      // re-scan so-far calculated PPD values, normalize them and calculate the
+      // temporary averages and sigmas of the parameter distributions
 
-       // sums for calculation of temporary centres and sigmas of the 1D PPDs
-       double wPPD_sum = 0.;
+      // sums for calculation of temporary centres and sigmas of the 1D PPDs
+      double wPPD_sum = 0.;
 
-       double Ath1_avg = 0.;
-       double Ath1_sqavg = 0.;
-       double Ath2_avg = 0.;
-       double Ath2_sqavg = 0.;
-       double Ath3_avg = 0.;
-       double Ath3_sqavg = 0.;
+      double Ath1_avg = 0.;
+      double Ath1_sqavg = 0.;
+      double Ath2_avg = 0.;
+      double Ath2_sqavg = 0.;
+      double Ath3_avg = 0.;
+      double Ath3_sqavg = 0.;
 
-       double Aph1_avg = 0.;
-       double Aph1_sqavg = 0.;
-       double Aph2_avg = 0.;
-       double Aph2_sqavg = 0.;
-       double Aph3_avg = 0.;
-       double Aph3_sqavg = 0.;
-       
-       double Atp1_avg = 0.;
-       double Atp1_sqavg = 0.;
-       double Atp2_avg = 0.;
-       double Atp2_sqavg = 0.;
-       double Atp3_avg = 0.;
-       double Atp3_sqavg = 0.;
+      double Aph1_avg = 0.;
+      double Aph1_sqavg = 0.;
+      double Aph2_avg = 0.;
+      double Aph2_sqavg = 0.;
+      double Aph3_avg = 0.;
+      double Aph3_sqavg = 0.;
 
-       for(int i_rescan = 0; i_rescan < i_scan; i_rescan++){
+      double Atp1_avg = 0.;
+      double Atp1_sqavg = 0.;
+      double Atp2_avg = 0.;
+      double Atp2_sqavg = 0.;
+      double Atp3_avg = 0.;
+      double Atp3_sqavg = 0.;
 
-         double PPD0 = exp(lnPPD_arr[i_rescan][0]-lnPPD_max[0]);
+      for(int i_rescan = 0; i_rescan < i_scan; i_rescan++){
 
-         double wPPD_temp = 0.;
+        double PPD0 = exp(lnPPD_arr[i_rescan][0]-lnPPD_max[0]);
 
-         for ( int i_variation = 1; i_variation < n_variations_of_reference; i_variation++ ) {
+        double wPPD_temp = 0.;
 
-            double PPDi = exp(lnPPD_arr[i_rescan][i_variation]-lnPPD_max[i_variation]);
+        for ( int i_variation = 1; i_variation < n_variations_of_reference; i_variation++ ) {
 
-            if ( fabs(PPDi - PPD0) > 0.001 * PPD0 ) wPPD_temp += PPDi; // sum of equally normalized PPDs
-                                                                      // of all non-null systematic variations
-         }
+          double PPDi = exp(lnPPD_arr[i_rescan][i_variation]-lnPPD_max[i_variation]);
 
-         double Ath1_temp = Ath1_arr[i_rescan];
-         double Ath2_temp = Ath2_arr[i_rescan];
-         double Ath3_temp = Ath3_arr[i_rescan];
+          if ( fabs(PPDi - PPD0) > 0.001 * PPD0 ) wPPD_temp += PPDi; // sum of equally normalized PPDs
+          // of all non-null systematic variations
+        }
 
-         double Aph1_temp = Aph1_arr[i_rescan];
-         double Aph2_temp = Aph2_arr[i_rescan];
-         double Aph3_temp = Aph3_arr[i_rescan];
-         
-         double Atp1_temp = Atp1_arr[i_rescan];
-         double Atp2_temp = Atp2_arr[i_rescan];
-         double Atp3_temp = Atp3_arr[i_rescan];
+        double Ath1_temp = Ath1_arr[i_rescan];
+        double Ath2_temp = Ath2_arr[i_rescan];
+        double Ath3_temp = Ath3_arr[i_rescan];
 
-         wPPD_sum += wPPD_temp;
+        double Aph1_temp = Aph1_arr[i_rescan];
+        double Aph2_temp = Aph2_arr[i_rescan];
+        double Aph3_temp = Aph3_arr[i_rescan];
 
-         Ath1_avg   += wPPD_temp * Ath1_temp;
-         Ath1_sqavg += wPPD_temp * Ath1_temp*Ath1_temp;
-         Ath2_avg   += wPPD_temp * Ath2_temp;
-         Ath2_sqavg += wPPD_temp * Ath2_temp*Ath2_temp;
-         Ath3_avg   += wPPD_temp * Ath3_temp;
-         Ath3_sqavg += wPPD_temp * Ath3_temp*Ath3_temp;
-         
-         Aph1_avg   += wPPD_temp * Aph1_temp;
-         Aph1_sqavg += wPPD_temp * Aph1_temp*Aph1_temp;
-         Aph2_avg   += wPPD_temp * Aph2_temp;
-         Aph2_sqavg += wPPD_temp * Aph2_temp*Aph2_temp;
-         Aph3_avg   += wPPD_temp * Aph3_temp;
-         Aph3_sqavg += wPPD_temp * Aph3_temp*Aph3_temp;
-         
-         Atp1_avg   += wPPD_temp * Atp1_temp;
-         Atp1_sqavg += wPPD_temp * Atp1_temp*Atp1_temp;
-         Atp2_avg   += wPPD_temp * Atp2_temp;
-         Atp2_sqavg += wPPD_temp * Atp2_temp*Atp2_temp;
-         Atp3_avg   += wPPD_temp * Atp3_temp;
-         Atp3_sqavg += wPPD_temp * Atp3_temp*Atp3_temp;
-       }
+        double Atp1_temp = Atp1_arr[i_rescan];
+        double Atp2_temp = Atp2_arr[i_rescan];
+        double Atp3_temp = Atp3_arr[i_rescan];
 
-       // re-define scan centres and sigmas
+        wPPD_sum += wPPD_temp;
 
-       Ath[0] = Ath1_avg / wPPD_sum;
-       dAth[0] = sqrt( fabs( Ath1_sqavg / wPPD_sum - Ath[0]*Ath[0] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       Ath[1] = Ath2_avg / wPPD_sum;
-       dAth[1] = sqrt( fabs( Ath2_sqavg / wPPD_sum - Ath[1]*Ath[1] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       Ath[2] = Ath3_avg / wPPD_sum;
-       dAth[2] = sqrt( fabs( Ath3_sqavg / wPPD_sum - Ath[2]*Ath[2] ) ) * scan_sigma_margin_factor[i_scan_phase];
+        Ath1_avg   += wPPD_temp * Ath1_temp;
+        Ath1_sqavg += wPPD_temp * Ath1_temp*Ath1_temp;
+        Ath2_avg   += wPPD_temp * Ath2_temp;
+        Ath2_sqavg += wPPD_temp * Ath2_temp*Ath2_temp;
+        Ath3_avg   += wPPD_temp * Ath3_temp;
+        Ath3_sqavg += wPPD_temp * Ath3_temp*Ath3_temp;
 
-       Aph[0] = Aph1_avg / wPPD_sum;
-       dAph[0] = sqrt( fabs( Aph1_sqavg / wPPD_sum - Aph[0]*Aph[0] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       Aph[1] = Aph2_avg / wPPD_sum;
-       dAph[1] = sqrt( fabs( Aph2_sqavg / wPPD_sum - Aph[1]*Aph[1] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       Aph[2] = Aph3_avg / wPPD_sum;
-       dAph[2] = sqrt( fabs( Aph3_sqavg / wPPD_sum - Aph[2]*Aph[2] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       
-       Atp[0] = Atp1_avg / wPPD_sum;
-       dAtp[0] = sqrt( fabs( Atp1_sqavg / wPPD_sum - Atp[0]*Atp[0] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       Atp[1] = Atp2_avg / wPPD_sum;
-       dAtp[1] = sqrt( fabs( Atp2_sqavg / wPPD_sum - Atp[1]*Atp[1] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       Atp[2] = Atp3_avg / wPPD_sum;
-       dAtp[2] = sqrt( fabs( Atp3_sqavg / wPPD_sum - Atp[2]*Atp[2] ) ) * scan_sigma_margin_factor[i_scan_phase];
-       /*
-       cout << endl;
-       for ( int i = 0; i < npar_th; i++ ) {
-         cout << "x = " << x[i] << ":   Ath = " << Ath[i] << " +/- " << dAth[i] << endl;
-       }
-       for ( int i = 0; i < npar_ph; i++ ) {
-         cout << "x = " << x[i] << ":   Aph = " << Aph[i] << " +/- " << dAph[i] << endl;
-       }
-       for ( int i = 0; i < npar_tp; i++ ) {
-         cout << "x = " << x[i] << ":   Atp = " << Atp[i] << " +/- " << dAtp[i] << endl;
-       }
-       */
+        Aph1_avg   += wPPD_temp * Aph1_temp;
+        Aph1_sqavg += wPPD_temp * Aph1_temp*Aph1_temp;
+        Aph2_avg   += wPPD_temp * Aph2_temp;
+        Aph2_sqavg += wPPD_temp * Aph2_temp*Aph2_temp;
+        Aph3_avg   += wPPD_temp * Aph3_temp;
+        Aph3_sqavg += wPPD_temp * Aph3_temp*Aph3_temp;
+
+        Atp1_avg   += wPPD_temp * Atp1_temp;
+        Atp1_sqavg += wPPD_temp * Atp1_temp*Atp1_temp;
+        Atp2_avg   += wPPD_temp * Atp2_temp;
+        Atp2_sqavg += wPPD_temp * Atp2_temp*Atp2_temp;
+        Atp3_avg   += wPPD_temp * Atp3_temp;
+        Atp3_sqavg += wPPD_temp * Atp3_temp*Atp3_temp;
+      }
+
+      // re-define scan centres and sigmas
+
+      Ath[0] = Ath1_avg / wPPD_sum;
+      dAth[0] = sqrt( fabs( Ath1_sqavg / wPPD_sum - Ath[0]*Ath[0] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      Ath[1] = Ath2_avg / wPPD_sum;
+      dAth[1] = sqrt( fabs( Ath2_sqavg / wPPD_sum - Ath[1]*Ath[1] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      Ath[2] = Ath3_avg / wPPD_sum;
+      dAth[2] = sqrt( fabs( Ath3_sqavg / wPPD_sum - Ath[2]*Ath[2] ) ) * scan_sigma_margin_factor[i_scan_phase];
+
+      Aph[0] = Aph1_avg / wPPD_sum;
+      dAph[0] = sqrt( fabs( Aph1_sqavg / wPPD_sum - Aph[0]*Aph[0] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      Aph[1] = Aph2_avg / wPPD_sum;
+      dAph[1] = sqrt( fabs( Aph2_sqavg / wPPD_sum - Aph[1]*Aph[1] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      Aph[2] = Aph3_avg / wPPD_sum;
+      dAph[2] = sqrt( fabs( Aph3_sqavg / wPPD_sum - Aph[2]*Aph[2] ) ) * scan_sigma_margin_factor[i_scan_phase];
+
+      Atp[0] = Atp1_avg / wPPD_sum;
+      dAtp[0] = sqrt( fabs( Atp1_sqavg / wPPD_sum - Atp[0]*Atp[0] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      Atp[1] = Atp2_avg / wPPD_sum;
+      dAtp[1] = sqrt( fabs( Atp2_sqavg / wPPD_sum - Atp[1]*Atp[1] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      Atp[2] = Atp3_avg / wPPD_sum;
+      dAtp[2] = sqrt( fabs( Atp3_sqavg / wPPD_sum - Atp[2]*Atp[2] ) ) * scan_sigma_margin_factor[i_scan_phase];
+      /*
+        cout << endl;
+        for ( int i = 0; i < npar_th; i++ ) {
+        cout << "x = " << x[i] << ":   Ath = " << Ath[i] << " +/- " << dAth[i] << endl;
+        }
+        for ( int i = 0; i < npar_ph; i++ ) {
+        cout << "x = " << x[i] << ":   Aph = " << Aph[i] << " +/- " << dAph[i] << endl;
+        }
+        for ( int i = 0; i < npar_tp; i++ ) {
+        cout << "x = " << x[i] << ":   Atp = " << Atp[i] << " +/- " << dAtp[i] << endl;
+        }
+      */
     }
 
 
@@ -1408,7 +1408,7 @@ void polPPD(){
   ///////////////////////////////////////////////////////////////////////////////////
 
   TFile* ppdFile = new TFile("polPPD.root", "RECREATE", "polPPD");
-  
+
   // histogram with valus of the 3 support points and qualification of the x variable
   TH1D* xi_values  = new TH1D("xi_values", "xi_values", 4, 0.5, 4.5 );
   xi_values->SetBinContent(1, x[0] );
@@ -1472,10 +1472,10 @@ void polPPD(){
 
     for ( int i_variation = 1; i_variation < n_variations_of_reference; i_variation++ ) {
 
-       double PPDi = exp(lnPPD_arr[i_scan][i_variation]-lnPPD_max[i_variation]);
+      double PPDi = exp(lnPPD_arr[i_scan][i_variation]-lnPPD_max[i_variation]);
 
-       if ( fabs(PPDi - PPD0) > 0.001 * PPD0 ) wPPD += PPDi; // sum of equally normalized PPDs
-                                                             // of all non-null systematic variations
+      if ( fabs(PPDi - PPD0) > 0.001 * PPD0 ) wPPD += PPDi; // sum of equally normalized PPDs
+      // of all non-null systematic variations
     }
 
     //remove smearing due to reference variation
@@ -1488,7 +1488,7 @@ void polPPD(){
     Aph1 = Aph1_arr[i_scan];
     Aph2 = Aph2_arr[i_scan];
     Aph3 = Aph3_arr[i_scan];
-         
+
     Atp1 = Atp1_arr[i_scan];
     Atp2 = Atp2_arr[i_scan];
     Atp3 = Atp3_arr[i_scan];
@@ -1513,14 +1513,14 @@ void polPPD(){
     lth2_sqavg += wPPD * lth2*lth2;
     lth3_avg   += wPPD * lth3;
     lth3_sqavg += wPPD * lth3*lth3;
-    
+
     lph1_avg   += wPPD * lph1;
     lph1_sqavg += wPPD * lph1*lph1;
     lph2_avg   += wPPD * lph2;
     lph2_sqavg += wPPD * lph2*lph2;
     lph3_avg   += wPPD * lph3;
     lph3_sqavg += wPPD * lph3*lph3;
-    
+
     ltp1_avg   += wPPD * ltp1;
     ltp1_sqavg += wPPD * ltp1*ltp1;
     ltp2_avg   += wPPD * ltp2;
@@ -1549,7 +1549,7 @@ void polPPD(){
   dlph2 = sqrt( fabs( lph2_sqavg / wPPD_sum - lph2*lph2 ) );
   ltp2 = ltp2_avg / wPPD_sum;
   dltp2 = sqrt( fabs( ltp2_sqavg / wPPD_sum - ltp2*ltp2 ) );
-  
+
   lth3 = lth3_avg / wPPD_sum;
   dlth3 = sqrt( fabs( lth3_sqavg / wPPD_sum - lth3*lth3 ) );
   lph3 = lph3_avg / wPPD_sum;
@@ -1578,27 +1578,3 @@ void polPPD(){
   cout         << "Real time: " << int(timer->RealTime()) << " s" << endl << endl;
 
 } // END
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

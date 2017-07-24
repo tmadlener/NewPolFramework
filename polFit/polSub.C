@@ -44,10 +44,10 @@ void polSub(int nSample = 1){ // 0 = reference, 1 = data
 
   for ( int istep = 0; istep < n_intgrsteps; istep++ ) {
 
-     double xmass = mass_min + istep * intgrstep;
+    double xmass = mass_min + istep * intgrstep;
 
-     normBG_tot = normBG_tot + g_mass_B(xmass)*intgrstep;
-     if ( xmass > lftSideEnd && xmass < rgtSideStt ) normBG_SR = normBG_SR + g_mass_B(xmass)*intgrstep;
+    normBG_tot = normBG_tot + g_mass_B(xmass)*intgrstep;
+    if ( xmass > lftSideEnd && xmass < rgtSideStt ) normBG_SR = normBG_SR + g_mass_B(xmass)*intgrstep;
   }
 
   double normBG_Side = normBG_tot - normBG_SR;
@@ -56,7 +56,7 @@ void polSub(int nSample = 1){ // 0 = reference, 1 = data
   //////////////////////////////////////////////////////////////////////////////////////////////////////
 
   gROOT->Reset();
-  
+
   // input ntuple
 
   TFile* genFile;
@@ -119,11 +119,9 @@ void polSub(int nSample = 1){ // 0 = reference, 1 = data
   cout << endl << endl;
 
 
-/////// end
+  /////// end
 
   genFile->Write();
   genFile->Close();
 
 }
-
-

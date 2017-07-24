@@ -91,7 +91,7 @@ void polGen(){
 
 
 
-/////////////////// CYCLE OF EVENTS ////////////////////////
+  /////////////////// CYCLE OF EVENTS ////////////////////////
   for(int i_event = 1; i_event <= n_events; i_event++){
 
     // generation of dilepton in the pp event in the pp CM
@@ -101,13 +101,13 @@ void polGen(){
     isBG = 0;
 
     if ( gRandom->Uniform() < f_BG ) { isBG = 1;
-                                       mass = gRandom->Uniform(mass_min, mass_max);
-                                       pT = pT_distr_BG->GetRandom();
-                                       Nch = Nch_distr_BG->GetRandom(); }
+      mass = gRandom->Uniform(mass_min, mass_max);
+      pT = pT_distr_BG->GetRandom();
+      Nch = Nch_distr_BG->GetRandom(); }
     else { do { mass = gRandom->Gaus(mass_signal_peak, mass_signal_sigma); }
-           while ( mass < mass_min || mass > mass_max );
-           pT = pT_distr->GetRandom();
-           Nch = Nch_distr->GetRandom();  }
+      while ( mass < mass_min || mass > mass_max );
+      pT = pT_distr->GetRandom();
+      Nch = Nch_distr->GetRandom();  }
 
     // pL:
 
@@ -138,11 +138,11 @@ void polGen(){
     bool PX_is_natural = PX_is_natural_sig;
 
     if ( isBG ) {
-       lambda_theta    = lambda_theta_bkg(pT, Nch);
-       lambda_phi      = lambda_phi_bkg(pT, Nch);
-       lambda_thetaphi = lambda_thetaphi_bkg(pT, Nch);
-       HX_is_natural = HX_is_natural_bkg;
-       PX_is_natural = PX_is_natural_bkg;
+      lambda_theta    = lambda_theta_bkg(pT, Nch);
+      lambda_phi      = lambda_phi_bkg(pT, Nch);
+      lambda_thetaphi = lambda_thetaphi_bkg(pT, Nch);
+      HX_is_natural = HX_is_natural_bkg;
+      PX_is_natural = PX_is_natural_bkg;
     }
 
 
@@ -156,13 +156,13 @@ void polGen(){
     if ( lambda_theta > 0. ) costhphidistr_max += lambda_theta;
 
     do { costh_gen = -1. + 2. * gRandom->Uniform(1.);
-         phi_gen   = 2. * gPI * gRandom->Uniform(1.);
-         sinth_gen = sqrt( 1. - costh_gen*costh_gen );
-         costhphidistr_rnd = costhphidistr_max * gRandom->Uniform(1.);
-         costhphidistr = 1. + lambda_theta    * costh_gen*costh_gen
-                            + lambda_phi      * sinth_gen*sinth_gen * cos(2.*phi_gen)
-                            + lambda_thetaphi * 2.* sinth_gen*costh_gen * cos(phi_gen);
-       } while ( costhphidistr_rnd > costhphidistr );
+      phi_gen   = 2. * gPI * gRandom->Uniform(1.);
+      sinth_gen = sqrt( 1. - costh_gen*costh_gen );
+      costhphidistr_rnd = costhphidistr_max * gRandom->Uniform(1.);
+      costhphidistr = 1. + lambda_theta    * costh_gen*costh_gen
+        + lambda_phi      * sinth_gen*sinth_gen * cos(2.*phi_gen)
+        + lambda_thetaphi * 2.* sinth_gen*costh_gen * cos(phi_gen);
+    } while ( costhphidistr_rnd > costhphidistr );
 
 
     // lepton momentum in the dilepton rest frame:
@@ -218,13 +218,13 @@ void polGen(){
 
     TRotation rotation;
     rotation.RotateAxes(oldXaxis, oldYaxis, oldZaxis);
-                     // transforms coordinates from the "old" frame to the "xyz" frame
+    // transforms coordinates from the "old" frame to the "xyz" frame
 
     TLorentzVector lepton_DILEP_xyz = lepton_DILEP;
 
     lepton_DILEP_xyz.Transform(rotation);
-                     // lepton_DILEP_xyz is the lepton in the dilepton rest frame
-                     // wrt to the lab axes
+    // lepton_DILEP_xyz is the lepton in the dilepton rest frame
+    // wrt to the lab axes
 
     // lepton 4-vectors in the LAB frame:
 
