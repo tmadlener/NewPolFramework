@@ -4,6 +4,8 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
+#include "TRandom3.h"
+
 // lifetimecuts, hardcoded here, toggle application with boolean
 
 bool ctauCut(const double ctau, const double ctauErr)
@@ -65,8 +67,13 @@ void prepareEvents::Loop(bool RequestTrigger, bool rejectCowboys, bool applyCtau
 
   Long64_t nbytes = 0, nb = 0, countRecEvent = 0;
 
+  // delete gRandom;
+  // gRandom = new TRandom3(7); // arbitrary seed to split dataset into two halves randomly
+
   // nentries=25000000;
   for (Long64_t jentry=33000000; jentry<nentries;jentry++) {
+    // if (gRandom->Uniform() > 0.5) continue; // split dataset into two random half samples
+
     if(jentry % 1000000 == 0) printf("event %d out of %d\n", (Int_t) jentry, (Int_t) nentries);
 
 
