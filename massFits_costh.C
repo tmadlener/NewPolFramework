@@ -91,7 +91,7 @@ std::string getBinName(const V& binning, const size_t bin, const std::string& va
   std::stringstream sstr;
   sstr << var << "_" << binning[bin - 1] << "to" << binning[bin];
 
-  return std::regex_replace(sstr.str(), std::regex("([0-9]+).([0-9]+)"), "$1p$2");
+  return std::regex_replace(sstr.str(), std::regex("([0-9]+)\\.([0-9]+)"), "$1p$2");
 }
 
 // NOTE: at the moment only supports > than
@@ -110,67 +110,85 @@ std::string getCutName(const std::string var, const double val)
   return std::regex_replace(sstr.str(), std::regex("([0-9]+).([0-9]+)"), "$1p$2");
 }
 
-void costhBinFits(RooWorkspace* ws, const std::string&& fullDataName)
+void doFit(RooWorkspace* ws, const std::string& cut, const std::string& name,
+           const std::string& fullDataName)
 {
   using namespace RooFit;
-
-  constexpr std::array<double, 10> absCosThEdges = {0.0, 0.1, 0.2, 0.3, 0.4,
-                                                    0.5, 0.6, 0.7, 0.8, 1.0};
 
   auto* fullData = ws->data(fullDataName.c_str());
   auto* model = ws->pdf("fullModel");
   auto* params = (RooArgSet*) model->getParameters(*(ws->var("mass")));
 
-  std::cout << fullData << " " << model << " " << params << "\n";
+  auto* binData = fullData->reduce(cut.c_str());
+  binData->SetName(("data_" + name).c_str());
+  ws->import(*binData);
+
+  auto* rlt = model->fitTo(*binData, Minos(false), NumCPU(4), Range("fitRange"),
+                           Save(true));
+
+  rlt->SetName(("fitResults_" + name).c_str());
+  ws->import(*rlt);
+
+  ws->saveSnapshot(("snap_" + name).c_str(), *params, true);
+}
+
+
+void costhBinFits(RooWorkspace* ws, const std::string&& fullDataName)
+{
+  constexpr std::array<double, 10> absCosThEdges = {0.0, 0.1, 0.2, 0.3, 0.4,
+                                                    0.5, 0.6, 0.7, 0.8, 1.0};
 
   for (size_t i = 1; i < absCosThEdges.size(); ++i) {
     const auto cutString = getBinExpr(absCosThEdges, i, "TMath::Abs(costh_HX)");
     const auto binName = getBinName(absCosThEdges, i, "absCosth");
 
-    auto* binData = fullData->reduce(cutString.c_str());
-    binData->SetName(("data_" + binName).c_str());
-    ws->import(*binData);
-
-    auto* rlt = model->fitTo(*binData, Minos(false), NumCPU(4), Range("fitRange"),
-                             Save(true));
-
-    rlt->SetName(("fitResults_" + binName).c_str());
-    ws->import(*rlt);
-
-    ws->saveSnapshot(("snap_" + binName).c_str(), *params, true);
-
-    // delete binData;
+    doFit(ws, cutString, binName, fullDataName);
   }
-
-  // delete fullData;
 }
 
 void NchCutFits(RooWorkspace* ws, const std::string& fullDataName)
 {
-  using namespace RooFit;
   constexpr std::array<double, 6> nchCuts = {2, 4, 5, 6, 8, 10};
-
-  auto* fullData = ws->data(fullDataName.c_str());
-  auto* model = ws->pdf("fullModel");
-  auto* params = (RooArgSet*) model->getParameters(*(ws->var("mass")));
 
   for (const double& cut : nchCuts) {
     const auto cutStr = getCutString("Nch", cut);
     const auto cutName = getCutName("Nch", cut);
 
-    auto* cutData = fullData->reduce(cutStr.c_str());
-    cutData->SetName(("data_" + cutName).c_str());
-    ws->import(*cutData);
-
-    auto* rlt = model->fitTo(*cutData, Minos(false), NumCPU(4), Range("fitRange"),
-                             Save(true));
-
-    rlt->SetName(("fitResults_" + cutName).c_str());
-    ws->import(*rlt);
-
-    ws->saveSnapshot(("snap_" + cutName).c_str(), *params, true);
+    doFit(ws, cutStr, cutName, fullDataName);
   }
 }
+
+struct Cuts {
+  Cuts(std::array<double, 2> p, std::array<double, 2> N) : pT(p), Nch(N) {}
+  std::array<double, 2> pT;
+  std::array<double, 2> Nch;
+
+  std::string getCutString() const { return getBinExpr(Nch, 1, "Nch") + " && " + getBinExpr(pT, 1, "pT"); }
+  std::string getCutName() const { return getBinName(Nch, 1, "Nch") + "_" + getBinName(pT, 1, "pT"); }
+};
+
+/** function to to some combinations of Nch and pT cuts. */
+void NchPtCutsFits(RooWorkspace* ws, const std::string& fullDataName)
+{
+  const std::vector<Cuts> cuts = {Cuts({15, 70}, {0, 180}), // Suggestion 1 from Carlos
+                                  Cuts({10, 70}, {23, 180}), // Suggestion 2 from Carlos
+                                  Cuts({10, 70}, {20, 180}),
+                                  Cuts({10, 15}, {0, 20}), // Suggestion 3 from Carlos
+                                  Cuts({10, 12}, {0, 20}),
+                                  Cuts({12, 15}, {0, 20}),
+                                  Cuts({15, 70}, {20, 180}), // Suggestion 4 from Carlos
+                                  Cuts({15, 70}, {0, 20}), // needed?
+                                  Cuts({15, 70}, {0, 23}) // needed?
+  };
+
+  for (const auto& c : cuts) {
+    const auto cutStr = c.getCutString();
+    const auto cutName = c.getCutName();
+
+    doFit(ws, cutStr, cutName, fullDataName);
+  }
+}
+
 
 void massFits_costh(const std::string& fn)
 {
@@ -200,8 +218,8 @@ void massFits_costh(const std::string& fn)
 
 
   // auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("pT > 15.0"));
-  auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("Nch < 75.0"));
-  // auto* fitData = &fullData;
+  // auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("Nch < 75.0"));
+  auto* fitData = &fullData;
   fitData->SetName("fitData");
   ws->import(*fitData);
 
@@ -217,8 +235,11 @@ void massFits_costh(const std::string& fn)
   ws->import(*rlt);
 
   // costhBinFits(ws, "fitData");
-  NchCutFits(ws, "fitData");
-  ws->writeToFile("ws_fit_result_Nch_cuts_Nch_lt75.root");
+  // NchCutFits(ws, "fitData");
+  // ws->writeToFile("ws_fit_result_Nch_cuts_Nch_lt75.root");
+
+  NchPtCutsFits(ws, "fitData");
+  ws->writeToFile("ws_fit_result_Nch_pT_combi_cuts.root");
 
   // plotModel(ws, "snap_fullData");
 }
