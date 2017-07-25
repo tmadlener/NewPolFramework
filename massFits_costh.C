@@ -94,6 +94,22 @@ std::string getBinName(const V& binning, const size_t bin, const std::string& va
   return std::regex_replace(sstr.str(), std::regex("([0-9]+).([0-9]+)"), "$1p$2");
 }
 
+// NOTE: at the moment only supports > than
+std::string getCutString(const std::string var, const double val)
+{
+  std::stringstream sstr;
+  sstr << var << " > " << val;
+  return sstr.str();
+}
+
+std::string getCutName(const std::string var, const double val)
+{
+  std::stringstream sstr;
+  sstr << var << "_" << val;
+
+  return std::regex_replace(sstr.str(), std::regex("([0-9]+).([0-9]+)"), "$1p$2");
+}
+
 void costhBinFits(RooWorkspace* ws, const std::string&& fullDataName)
 {
   using namespace RooFit;
@@ -129,7 +145,34 @@ void costhBinFits(RooWorkspace* ws, const std::string&& fullDataName)
   // delete fullData;
 }
 
-void massFits_costh(std::string fn)
+void NchCutFits(RooWorkspace* ws, const std::string& fullDataName)
+{
+  using namespace RooFit;
+  constexpr std::array<double, 6> nchCuts = {2, 4, 5, 6, 8, 10};
+
+  auto* fullData = ws->data(fullDataName.c_str());
+  auto* model = ws->pdf("fullModel");
+  auto* params = (RooArgSet*) model->getParameters(*(ws->var("mass")));
+
+  for (const double& cut : nchCuts) {
+    const auto cutStr = getCutString("Nch", cut);
+    const auto cutName = getCutName("Nch", cut);
+
+    auto* cutData = fullData->reduce(cutStr.c_str());
+    cutData->SetName(("data_" + cutName).c_str());
+    ws->import(*cutData);
+
+    auto* rlt = model->fitTo(*cutData, Minos(false), NumCPU(4), Range("fitRange"),
+                             Save(true));
+
+    rlt->SetName(("fitResults_" + cutName).c_str());
+    ws->import(*rlt);
+
+    ws->saveSnapshot(("snap_" + cutName).c_str(), *params, true);
+  }
+}
+
+void massFits_costh(const std::string& fn)
 {
   using namespace RooFit;
 
@@ -156,7 +199,9 @@ void massFits_costh(std::string fn)
   auto* params = (RooArgSet*) model->getParameters(mass);
 
 
-  auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("(TMath::Abs(ctau) / ctauErr) < 2.0 && pT > 20.0"));
+  // auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("pT > 15.0"));
+  auto* fitData = dynamic_cast<RooDataSet*>(fullData.reduce("Nch < 75.0"));
+  // auto* fitData = &fullData;
   fitData->SetName("fitData");
   ws->import(*fitData);
 
@@ -171,8 +216,9 @@ void massFits_costh(std::string fn)
   std::cout << rlt->status() << " " << rlt->covQual() << "\n";
   ws->import(*rlt);
 
-  costhBinFits(ws, "fitData");
-  ws->writeToFile("ws_fit_result_ctau2p0_pT20.root");
+  // costhBinFits(ws, "fitData");
+  NchCutFits(ws, "fitData");
+  ws->writeToFile("ws_fit_result_Nch_cuts_Nch_lt75.root");
 
   // plotModel(ws, "snap_fullData");
 }
@@ -180,7 +226,7 @@ void massFits_costh(std::string fn)
 #if !(defined(__CINT__) || defined(__CLING__))
 int main(int argc, char *argv[])
 {
-  std::string filename = argv[1];
+  const std::string filename = argv[1];
 
   massFits_costh(filename);
 
