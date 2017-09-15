@@ -76,8 +76,11 @@ double scan_sigma_margin_factor[n_scan_phases]
 // physical boundaries for parameter scanning:
 // outside them the PPD will not be calculated (= zero)
 
-const double Ath_min = 0.0;
-const double Ath_max = 1.0;
+// const double Ath_min = 0.0;
+// const double Ath_max = 1.0;
+
+const double Ath_min = -0.2; // lth = 2
+const double Ath_max = 3.0; // lth = 2
 
 const double Aph_min = -1.0;
 const double Aph_max = 1.0;
@@ -1182,7 +1185,12 @@ void polPPD(){
     double ln_scan_weight = 0.;
 
     double Ath1, Ath2, Ath3;
-    Ath1 = gRandom->Gaus(Ath[0], dAth[0]); ln_scan_weight -= log( TMath::Gaus(Ath1, Ath[0], dAth[0]) );
+    do {
+      Ath1 = gRandom->Gaus(Ath[0], dAth[0]);
+    } while(Ath1 > Ath_max || Ath1 < Ath_min);
+    ln_scan_weight -= log( TMath::Gaus(Ath1, Ath[0], dAth[0]) );
+
+
     Ath2 = Ath1; Ath3 = Ath1;
     if ( npar_th == 2 ) { do { Ath2 = gRandom->Gaus(Ath[1], dAth[1]); } while ( Ath2 > Ath_max || Ath2 < Ath_min );
       ln_scan_weight -= log( TMath::Gaus(Ath2, Ath[1], dAth[1]) );
@@ -1196,7 +1204,11 @@ void polPPD(){
     Ath3_arr[i_scan] = Ath3;
 
     double Aph1, Aph2, Aph3;
-    Aph1 = gRandom->Gaus(Aph[0], dAph[0]); ln_scan_weight -= log( TMath::Gaus(Aph1, Aph[0], dAph[0]) );
+    do {
+    Aph1 = gRandom->Gaus(Aph[0], dAph[0]);
+    } while(Aph1 > Aph_max || Aph1 < Aph_min);
+    ln_scan_weight -= log( TMath::Gaus(Aph1, Aph[0], dAph[0]) );
+
     Aph2 = Aph1; Aph3 = Aph1;
     if ( npar_ph == 2 ) { do { Aph2 = gRandom->Gaus(Aph[1], dAph[1]); } while ( Aph2 > Aph_max || Aph2 < Aph_min );
       ln_scan_weight -= log( TMath::Gaus(Aph2, Aph[1], dAph[1]) );
@@ -1210,7 +1222,11 @@ void polPPD(){
     Aph3_arr[i_scan] = Aph3;
 
     double Atp1, Atp2, Atp3;
-    Atp1 = gRandom->Gaus(Atp[0], dAtp[0]); ln_scan_weight -= log( TMath::Gaus(Atp1, Atp[0], dAtp[0]) );
+    do {
+      Atp1 = gRandom->Gaus(Atp[0], dAtp[0]);
+    } while(Atp1 > Atp1_max || Atp1 < Atp1_min);
+    ln_scan_weight -= log( TMath::Gaus(Atp1, Atp[0], dAtp[0]) );
+
     Atp2 = Atp1; Atp3 = Atp1;
     if ( npar_tp == 2 ) { do { Atp2 = gRandom->Gaus(Atp[1], dAtp[1]); } while ( Atp2 > Atp_max || Atp2 < Atp_min );
       ln_scan_weight -= log( TMath::Gaus(Atp2, Atp[1], dAtp[1]) );
