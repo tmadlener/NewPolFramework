@@ -27,7 +27,7 @@ const bool is_analysis_vs_pT = true;
 const double pTmin_analysis_not_vs_pT = 10.;   // set min and max pT in analysis done vs Nch
 const double pTmax_analysis_not_vs_pT = 100.;  //
 
-string nameOfX(is_analysis_vs_pT?"chicPt":"Nch");
+const auto nameOfX = is_analysis_vs_pT ? "chicPt" : "Nch";
 
 // x dependence: grade of polynomial parametrization
 const int npar_th = 1;
@@ -177,7 +177,11 @@ double func_pol_A(double* x, double* par)  // function to fit costh-phi distribu
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-void polPPD(){
+void polPPD(const std::string& sigFileN, const std::string& refFileN,
+            const std::string& sigTree, const std::string& refTree,
+            const std::string& outFile)
+{
+  using namespace std;
 
   gROOT->Reset();
   gErrorIgnoreLevel = kWarning;
@@ -192,8 +196,8 @@ void polPPD(){
   // TFile* dataFile = TFile::Open("~/work/PhD/data/Upsilon2011_Nch/tests_newFW/Upsilon2011_pt10_rap1p2_sampSplitRand_Seed77_gt/tmpFiles/data.root");
   // TTree* dataSample = (TTree*)dataFile->Get("selectedData");
 
-  TFile* dataFile = TFile::Open("~/cernbox/PhD/data/chic_steppingstone_tests/PR/chic_tuple_PR2.root");
-  TTree* dataSample = (TTree*)dataFile->Get("chic_tuple");
+  TFile* dataFile = TFile::Open(sigFileN.c_str());
+  TTree* dataSample = (TTree*)dataFile->Get(sigTree.c_str());
 
   double costh;  dataSample->SetBranchAddress( "costh_HX",     &costh );  // chose frame here
   double phi;    dataSample->SetBranchAddress( "phi_HX",       &phi   );
@@ -204,8 +208,8 @@ void polPPD(){
   // TFile* refFile = TFile::Open("~/work/PhD/data/Upsilon2011_Nch/tests_newFW/Upsilon2011_pt10_rap1p2_sampSplitRand_Seed77_lt/tmpFiles/data.root");
   // TTree* refSample = (TTree*)refFile->Get("selectedData");
 
-  TFile* refFile = TFile::Open("~/cernbox/PhD/data/chic_steppingstone_tests/PR/chic_tuple_PR.root");
-  TTree* refSample = (TTree*)refFile->Get("chic_tuple");
+  TFile* refFile = TFile::Open(refFileN.c_str());
+  TTree* refSample = (TTree*)refFile->Get(refTree.c_str());
 
   double costh_R;  refSample->SetBranchAddress( "costh_HX",    &costh_R );
   double phi_R;    refSample->SetBranchAddress( "phi_HX",      &phi_R   );
@@ -1205,7 +1209,7 @@ void polPPD(){
 
     double Aph1, Aph2, Aph3;
     do {
-    Aph1 = gRandom->Gaus(Aph[0], dAph[0]);
+      Aph1 = gRandom->Gaus(Aph[0], dAph[0]);
     } while(Aph1 > Aph_max || Aph1 < Aph_min);
     ln_scan_weight -= log( TMath::Gaus(Aph1, Aph[0], dAph[0]) );
 
@@ -1224,7 +1228,7 @@ void polPPD(){
     double Atp1, Atp2, Atp3;
     do {
       Atp1 = gRandom->Gaus(Atp[0], dAtp[0]);
-    } while(Atp1 > Atp1_max || Atp1 < Atp1_min);
+    } while(Atp1 > Atp_max || Atp1 < Atp_min);
     ln_scan_weight -= log( TMath::Gaus(Atp1, Atp[0], dAtp[0]) );
 
     Atp2 = Atp1; Atp3 = Atp1;
@@ -1432,7 +1436,7 @@ void polPPD(){
   //// PPD (output) ntuple //////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////
 
-  TFile* ppdFile = new TFile("polPPD.root", "RECREATE", "polPPD");
+  TFile* ppdFile = new TFile(outFile.c_str(), "RECREATE", "polPPD");
 
   // histogram with valus of the 3 support points and qualification of the x variable
   TH1D* xi_values  = new TH1D("xi_values", "xi_values", 4, 0.5, 4.5 );
