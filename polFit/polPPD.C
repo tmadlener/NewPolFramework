@@ -27,7 +27,10 @@ const bool is_analysis_vs_pT = true;
 const double pTmin_analysis_not_vs_pT = 10.;   // set min and max pT in analysis done vs Nch
 const double pTmax_analysis_not_vs_pT = 100.;  //
 
-const auto nameOfX = is_analysis_vs_pT ? "chicPt" : "Nch";
+const auto nameOfX = is_analysis_vs_pT ? "pT" : "Nch"; // name of "x"-branch in (both) samples
+
+const auto nameWSig = "wS"; // name of weight branch in signal sample
+const auto nameWRef = "wS"; // name of weight branch in reference sample
 
 // x dependence: grade of polynomial parametrization
 const int npar_th = 1;
@@ -201,8 +204,8 @@ void polPPD(const std::string& sigFileN, const std::string& refFileN,
 
   double costh;  dataSample->SetBranchAddress( "costh_HX",     &costh );  // chose frame here
   double phi;    dataSample->SetBranchAddress( "phi_HX",       &phi   );
-  double wS;     dataSample->SetBranchAddress( "wChic2",           &wS    );  // BG subtraction weight
-  double pT;     dataSample->SetBranchAddress( "chicPt",           &pT    );
+  double wS;     dataSample->SetBranchAddress( nameWSig,       &wS    );  // BG subtraction weight
+  double pT;     dataSample->SetBranchAddress( nameOfX,        &pT    );
   double Nch;    // dataSample->SetBranchAddress( "Nch",          &Nch   );
 
   // TFile* refFile = TFile::Open("~/work/PhD/data/Upsilon2011_Nch/tests_newFW/Upsilon2011_pt10_rap1p2_sampSplitRand_Seed77_lt/tmpFiles/data.root");
@@ -213,8 +216,8 @@ void polPPD(const std::string& sigFileN, const std::string& refFileN,
 
   double costh_R;  refSample->SetBranchAddress( "costh_HX",    &costh_R );
   double phi_R;    refSample->SetBranchAddress( "phi_HX",      &phi_R   );
-  double wS_R;     refSample->SetBranchAddress( "wChic1",          &wS_R    );
-  double pT_R;     refSample->SetBranchAddress( "chicPt",          &pT_R    );
+  double wS_R;     refSample->SetBranchAddress( nameWRef,      &wS_R    );
+  double pT_R;     refSample->SetBranchAddress( nameOfX,       &pT_R    );
   double Nch_R;     // refSample->SetBranchAddress( "Nch",         &Nch_R   );
 
   // determine x range and binning
@@ -225,13 +228,13 @@ void polPPD(const std::string& sigFileN, const std::string& refFileN,
   stringstream command_option;
   command_option << nameOfX << ">>h_x_data(" << nxcells << "," << xmin_imposed << "," << xmax_imposed << ")";
 
-  dataSample->Draw(command_option.str().c_str(),"wChic2","goff");
+  dataSample->Draw(command_option.str().c_str(),nameWSig,"goff");
   TH1D *h_x_data = (TH1D*)gDirectory->Get("h_x_data");
 
   command_option.str("");
   command_option << nameOfX << ">>h_x_ref(" << nxcells << "," << xmin_imposed << "," << xmax_imposed << ")";
 
-  refSample->Draw(command_option.str().c_str(),"wChic1","goff");
+  refSample->Draw(command_option.str().c_str(),nameWRef,"goff");
   TH1D *h_x_ref = (TH1D*)gDirectory->Get("h_x_ref");
 
   // determine total x range as the interesection of data and ref ranges
