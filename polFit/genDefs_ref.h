@@ -1,7 +1,7 @@
 const char outfile[256] = "genDataRef.root";
 
-const double pTdilepton_min =  10.;
-const double pTdilepton_max =  70.;
+const double pTdilepton_min =  15.;
+const double pTdilepton_max =  25.;
 const double rapdilepton_min = 0.0; // put here only interval in the positive-rapidity region!
 const double rapdilepton_max = 1.0; // e.g.: [0.5, 1.0] to generate in [-1.0, -0.5] and [0.5, 1.0]
 const double Nch_min =  0.;
@@ -17,7 +17,7 @@ double lftSideEnd = mass_signal_peak - 3.*mass_signal_sigma;
 double rgtSideStt = mass_signal_peak + 3.*mass_signal_sigma;
 
 
-const long n_events = 6000000; // number of signal + bkg events generated in the entire lepton momentum space
+const long n_events = 170000; // number of signal + bkg events generated in the entire lepton momentum space
 
 // background fraction
 const double f_BG = 0.40; // do not set smaller than 0.001
@@ -69,7 +69,7 @@ double func_rap_gen(double* x, double* par)
 // generated polarization for signal, as a possible function of pT and/or Nch
 inline double lambda_theta_sig(double pT, double Nch)
 {
-  return 0.;
+  return 0.5;
 }
 inline double lambda_phi_sig(double pT, double Nch)
 {
