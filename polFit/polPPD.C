@@ -32,6 +32,8 @@ const auto nameOfX = is_analysis_vs_pT ? "pT" : "Nch"; // name of "x"-branch in 
 const auto nameWSig = "wS"; // name of weight branch in signal sample
 const auto nameWRef = "wS"; // name of weight branch in reference sample
 
+static double gInputReferenceLth;
+
 // x dependence: grade of polynomial parametrization
 const int npar_th = 1;
 const int npar_ph = 1;
@@ -107,7 +109,7 @@ const double Atp_max = -Atp_min;
 
 double lambdath_ref(double x)  // x could here represent pT or any other variable wrt which lambda of reference is known to change
 {                              // Nch analysis: set to zero for relative measurement, or to the known Nch-integrated polarization
-  return 0;                    // for absolute measurement
+  return gInputReferenceLth;                    // for absolute measurement
 }
 double lambdaph_ref(double x)
 {
@@ -182,9 +184,11 @@ double func_pol_A(double* x, double* par)  // function to fit costh-phi distribu
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 void polPPD(const std::string& sigFileN, const std::string& refFileN,
             const std::string& sigTree, const std::string& refTree,
-            const std::string& outFile)
+            const std::string& outFile, const double inputRefLth = 0)
 {
   using namespace std;
+
+  gInputReferenceLth = inputRefLth;
 
   gROOT->Reset();
   gErrorIgnoreLevel = kWarning;
