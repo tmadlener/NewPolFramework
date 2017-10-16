@@ -15,6 +15,8 @@
 
 #include "genDefs_data.h"
 
+#include <string>
+#include <iostream>
 
 double g_mass_B(double mass)
 {
@@ -27,8 +29,9 @@ double g_mass_B(double mass)
 }
 
 
-void polSub(int nSample = 1){ // 0 = reference, 1 = data
-
+void polSub(const std::string& filename)
+{
+  using namespace std;
   // calculate proportion of sideband-to-signal-region background events
   // This is the ONLY necessary information from the invariant-mass fit to
   // the BG subtraction algorithm; if this fraction depends on pT (due to
@@ -59,9 +62,7 @@ void polSub(int nSample = 1){ // 0 = reference, 1 = data
 
   // input ntuple
 
-  TFile* genFile;
-  if ( nSample == 0 ) genFile = new TFile("genDataRef.root","update");
-  else                genFile = new TFile("genDataData.root","update");
+  TFile* genFile = TFile::Open(filename.c_str(), "update");
 
   TTree* genData = (TTree*)genFile->Get("genData");
 
@@ -121,7 +122,7 @@ void polSub(int nSample = 1){ // 0 = reference, 1 = data
 
   /////// end
 
-  genFile->Write();
+  genFile->Write(nullptr, TObject::kWriteDelete);
   genFile->Close();
 
 }

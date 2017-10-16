@@ -1,5 +1,3 @@
-#define data_or_ref 0 // 0 = reference, 1 = data
-
 #include "Riostream.h"
 #include "TSystem.h"
 #include "TString.h"
@@ -15,11 +13,10 @@
 #include "TH1.h"
 #include "TH2.h"
 
-#if data_or_ref == 1
 #include "genDefs_data.h"
-#else
-#include "genDefs_ref.h"
-#endif
+
+#include <iostream>
+#include <string>
 
 const double pbeam = 7000;  // (actually there is no dependence of polarization-frame definitions on beam energy)
 const double Mprot = 0.9382720;
@@ -31,7 +28,31 @@ TLorentzVector beam1_LAB( 0., 0., pbeam, Ebeam );
 TLorentzVector beam2_LAB( 0., 0., -pbeam, Ebeam );
 
 
-void polGen(){
+void polGen(const std::string& outfile,
+            const double lthsig, const double lthbkg,
+            const double lphsig, const double lphbkg,
+            const double ltpsig, const double ltpbkg,
+            const long nEvents)
+{
+  using namespace std;
+
+  // set static variables
+  gInputLthSig = lthsig;
+  gInputLthBkg = lthbkg;
+  gInputLphSig = lphsig;
+  gInputLphBkg = lphbkg;
+  gInputLtpSig = ltpsig;
+  gInputLtpBkg = ltpbkg;
+  n_events = nEvents;
+
+  std::cout << "------------------------------------------------------------\n";
+  std::cout << "Paramters used for generation:\n";
+  std::cout << "lthsig = " << lthsig << ", lthbkg = " << lthbkg << "\n"
+            << "lphsig = " << lphsig << ", lphbkg = " << lphbkg << "\n"
+            << "ltpsig = " << ltpsig << ", ltpbkg = " << ltpbkg << "\n"
+            << "nEvents = " << nEvents << "\n";
+  std::cout << "------------------------------------------------------------\n";
+
 
 
   gROOT->Reset();
@@ -47,7 +68,7 @@ void polGen(){
 
   TF1* rap_distr = new TF1("rap_distr",func_rap_gen,rapdilepton_min,rapdilepton_max,0);
 
-  TFile* hfileout = new TFile(outfile, "RECREATE", "genData");
+  TFile* hfileout = new TFile(outfile.c_str(), "RECREATE", "genData");
   TTree* genData = new TTree("genData","genData");
 
   // Structure of output ntuple

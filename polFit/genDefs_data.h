@@ -1,5 +1,3 @@
-const char outfile[256] = "genDataData.root";
-
 const double pTdilepton_min =  15.;
 const double pTdilepton_max =  25.;
 const double rapdilepton_min = 0.0; // put here only interval in the positive-rapidity region!
@@ -16,8 +14,14 @@ double mass_max = mass_signal_peak + n_sigmas_signal*mass_signal_sigma;
 double lftSideEnd = mass_signal_peak - 3.*mass_signal_sigma;
 double rgtSideStt = mass_signal_peak + 3.*mass_signal_sigma;
 
+static double gInputLthSig;
+static double gInputLthBkg;
+static double gInputLphSig;
+static double gInputLphBkg;
+static double gInputLtpSig;
+static double gInputLtpBkg;
 
-const long n_events = 135000; // number of signal + bkg events generated in the entire lepton momentum space
+static long n_events; // number of signal + bkg events generated in the entire lepton momentum space
 
 // background fraction
 const double f_BG = 0.40; // do not set smaller than 0.001
@@ -69,15 +73,15 @@ double func_rap_gen(double* x, double* par)
 // generated polarization for signal, as a possible function of pT and/or Nch
 inline double lambda_theta_sig(double pT, double Nch)
 {
-  return -0.5;
+  return gInputLthSig;
 }
 inline double lambda_phi_sig(double pT, double Nch)
 {
-  return 0.;
+  return gInputLphSig;
 }
 inline double lambda_thetaphi_sig(double pT, double Nch)
 {
-  return 0.;
+  return gInputLtpSig;
 }
 
 // natural frame for signal
@@ -88,15 +92,15 @@ const bool PX_is_natural_sig = false;
 // generated polarization for background, as a possible function of pT and/or Nch
 inline double lambda_theta_bkg(double pT, double Nch)
 {
-  return 1.0;
+  return gInputLtpBkg;
 }
 inline double lambda_phi_bkg(double pT, double Nch)
 {
-  return 1.0;
+  return gInputLphBkg;
 }
 inline double lambda_thetaphi_bkg(double pT, double Nch)
 {
-  return 0.0;
+  return gInputLtpBkg;
 }
 
 // natural frame for background
