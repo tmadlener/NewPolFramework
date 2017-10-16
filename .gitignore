@@ -4,8 +4,15 @@ runBoostAngles
 runReshuffleNch
 costh_mass
 
-*.d
-*.so
-*.pcm
-*.pdf
-*.root
+polFit/runPolGen
+polFit/runPolSub
+polFit/runPolPPD
+
+**.d
+**.so
+**.pcm
+**.pdf
+**.root
+**.pyc
+**.pkl
+**.json
