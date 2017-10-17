@@ -1,43 +1,11 @@
 #!/usr/bin/env python
 
-import subprocess as sp
 import os
 import json
-import re
 import datetime as dt
 import argparse
 from utils.miscHelpers import condMkDir, tail, parseVarBinning
-from utils.batch_utils import check_batch_file
-
-def get_job_id(output):
-    """Get the job id from the sbatch output"""
-    print(output) # print the output to the screen so the user can see what is going on
-    rgx = r'([0-9]+)'
-    m = re.search(rgx, output)
-    if m:
-        return int(m.group(1))
-    return None
-
-
-def append_to_json(json_file, data):
-    """If the json_file already exists, append the new json_data line to it, otherwise create it"""
-    # convert passed line into list, so that the json in the file can be appended to it
-    data = [data]
-
-    # check if file exists, if so add to data
-    try:
-        f = open(json_file, 'r')
-        json_data = json.load(f)
-        f.close()
-
-        for d in json_data:
-            data.append(d)
-    except IOError:
-        pass
-
-    with open(json_file, 'w') as f:
-        json.dump(data, f, indent=2, sort_keys=True)
-
+from utils.batch_utils import get_job_id, append_to_json
 
 
 def submit_job(config, output_base_dir, N_start=1, N_end=1):
@@ -45,7 +13,8 @@ def submit_job(config, output_base_dir, N_start=1, N_end=1):
 
     rep_p = lambda x : '{:.2f}'.format(x).replace('.', 'p')
     lambda_args = [str(config[x]) for x in ['lthsig', 'lthbkg', 'lphsig', 'lphbkg', 'ltpsig', 'ltpbkg']]
-    output_spec = '_'.join(['lth', rep_p(config['lthsig']), 'lph', rep_p(config['lphsig']), rep_p(config['ltpsig'])])
+    output_spec = '_'.join(['lth', rep_p(config['lthsig']), 'lph', rep_p(config['lphsig']),
+                            'ltp', rep_p(config['ltpsig'])])
 
     output_dir = '/'.join([output_base_dir, output_spec])
     condMkDir(output_dir)
@@ -92,19 +61,6 @@ def create_configs(args):
 
     return configs
 
-
-def get_batch_info_files(basedir):
-    """
-    Get all json file (names) containing the batch submission infos from the directories
-    in the basedir.
-
-    """
-    import glob
-    return glob.glob('/'.join([basedir, '*', 'batch_job_info.json']))
-
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='script for submitting jobs to the batch'
                                      ' system for generating ToyMC samples. The lambda '
@@ -135,18 +91,8 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--outbasedir', help='output base directory (necessary '
                         'for checking if jobs were successful', dest='outbasedir',
                         default='genData')
-    parser.add_argument('-c', '--checkGeneration', help='Check if the generation has been '
-                        'successful', dest='check', default=False, action='store_true')
 
     args = parser.parse_args()
 
-    if not args.check:
-        for c in create_configs(args):
-            submit_job(c, args.outbasedir, 1, args.nJobs)
-    else:
-        for bf in get_batch_info_files(args.outbasedir):
-            print('Checking jobs in {} ...'.format(bf))
-            if check_batch_file(bf):
-                print('All jobs completed successfully')
-            else:
-                print('Not all jobs completed successfully')
+    for c in create_configs(args):
+        submit_job(c, args.outbasedir, 1, args.nJobs)
