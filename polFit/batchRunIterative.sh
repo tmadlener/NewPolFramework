@@ -10,10 +10,20 @@ refFileName=${2}
 treeName=${3} # same name for both ref and data
 outFileName=${4} # make sure that the folder this file points to already exists! (it will not be checked)
 
+cd $(dirname ${outFileName})
+
 exe=${WORK}/NewPolMethodTests/Framework/polFit/run_iterative_fit.py
 
-python ${exe} --tree ${treeName} --nMaxIterations 10 --stopSignificance 0.1 \
+python ${exe} --tree ${treeName} --nMaxIterations 10 --stopSignificance 0.5 \
        ${dataFileName} ${refFileName} ${outFileName}
 
+# capture exitcode
+exitcode=$?
+
+# cleanup
+rm pTweight_fitted_iter*.pdf
+rm Polarization_fitted_iter*.pdf
+rm Lambdas_starting.pdf
 
 echo '-------------------- end: '$(date)' --------------------'
+exit ${exitcode}

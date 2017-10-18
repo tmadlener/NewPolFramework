@@ -5,8 +5,8 @@ import json
 import os
 import re
 import numpy as np
-from utils.TGraph_utils import createGraphSym
 from utils.miscHelpers import tail
+from helpers import get_val
 
 def parse_output(output):
     """
@@ -81,7 +81,7 @@ def check_stop(lambdas, sigmas=1.0):
     NOTE: currently only checks at one support point
     """
     # get any support point (they all have the same values currently with a constant fit)
-    lth = lambdas.values()[0]['lth']
+    lth = get_val(lambdas, 'lth')
 
     # stop if there is a nan in the results
     if any(np.isnan(lth)): return True
@@ -97,9 +97,7 @@ def calc_ref_lth(iteration_results):
     if len(iteration_results) == 0: return 0 # no iteration yet, so start at 0
     ref_lth = 0
     for res in iteration_results:
-        # very ugly currently but that is the format we have and for now it works
-        # currently seems to work also with added "iteration" key-value pair
-        ref_lth -= res.values()[0]['lth'][0]
+        ref_lth -= get_val(res, 'lth')[0]
 
     return ref_lth
 
@@ -119,7 +117,7 @@ def run(datafile, reffile, outfile, treename, sigmaStop, maxIterations):
         results["iteration"] = it # embed information of iteration into the results
         iter_results.append(results)
 
-        if check_stop(results): break
+        if check_stop(results, sigmaStop): break
 
         it += 1
 

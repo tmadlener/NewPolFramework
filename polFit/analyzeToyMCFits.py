@@ -6,6 +6,7 @@ import json
 import pandas as pd
 import numpy as np
 from utils.miscHelpers import flatten
+from helpers import get_val
 
 def get_matching_files(basedir, matchstr):
     """
@@ -20,26 +21,6 @@ def get_result_files_to_input(inputfile):
     """
     resdir = os.path.dirname(inputfile)
     return glob.glob('/'.join([resdir, 'fit_results_datagen*refgen*.json']))
-
-
-def get_val(nested_dict, key):
-    """
-    Get the value to the key from the (possibly) nested dict values
-    NOTE: this only works for the context we currently have, as it only descends down
-    the first subdict in each dictionary recursively, so that it is possible that the key
-    is in one of the dictionaiers, that gets never visited
-    """
-    if not key in nested_dict:
-        for subdict in nested_dict.values():
-            if not hasattr(subdict, '__iter__'):
-                continue
-            return get_val(subdict, key)
-    else:
-        return nested_dict[key]
-
-    # the recursion has fallen through here, the key was nowhere to be found in
-    # the nested dict (resp. not in the ones we looked at)
-    return None
 
 
 def get_all_vals(dict_list, key):
@@ -63,7 +44,8 @@ def get_final_results(resultjson):
 
     vals = {}
 
-    # assuming here that the last result is stored in the json at the last position
+    # sort using the iterations so that the last iteration is at -1
+    data.sort(key=lambda x : x['iteration'])
     final_vals = data[-1]
     final_lth = get_val(final_vals, 'lth')
     # for lph and ltp simply return the result from the last fit
@@ -122,7 +104,7 @@ def check_converged(lth_vals, significance=0.1):
     return conv
 
 
-def get_result_lambdas(inputjson):
+def get_result_lambdas(inputjson, conv_sigmas):
     """
     Get the resulting lambdas to the corresponding input json file
     Caluclates the mean, std, min and max value for the lth, lph, ltp and iterations
@@ -152,12 +134,12 @@ def get_result_lambdas(inputjson):
     lth_final_res = calc_mean_std_min_max(lth_finals)[lambda_idcs]
     iterations = calc_mean_std_min_max(iterations)[iter_idcs]
 
-    converged = check_converged(lth_finals)
+    converged = check_converged(lth_finals, conv_sigmas)
 
     return [lth_res, lph_res, ltp_res, lth_final_res, iterations, converged, len(resfiles)]
 
 
-def create_dataframe(basedir):
+def create_dataframe(basedir, conv_sigmas):
     """
     Create a dataframe collecting all the results from a given base directory.
     The data-frame will only contain the last (i.e. final) results for each iterative
@@ -179,9 +161,11 @@ def create_dataframe(basedir):
     input_files = get_matching_files(basedir, '/*/input_lambdas.json')
     for infile in input_files:
         in_lambdas = get_input_lambdas(infile)
-        res_lambdas = get_result_lambdas(infile)
+        res_lambdas = get_result_lambdas(infile, conv_sigmas)
 
         data_array.append(np.array(in_lambdas + list(flatten(res_lambdas))))
+
+        # break
 
     return pd.DataFrame(data_array, columns=in_columns + res_columns)
 
@@ -192,8 +176,10 @@ if __name__ == '__main__':
     parser.add_argument('fitBaseDir', help='base directory where all the fits are stored')
     parser.add_argument('-o', '--outputfile', help='output (.pkl) file to which the data '
                         'frame will be stored.', dest='outfile', default='fit_results.pkl')
+    parser.add_argument('-s', '--convSignificance', dest='sigmas', default=0.25, type=float,
+                        help='significance to use for determining if a fit has converged')
 
     args = parser.parse_args()
 
-    frame = create_dataframe(args.fitBaseDir)
+    frame = create_dataframe(args.fitBaseDir, args.sigmas)
     frame.to_pickle(args.outfile)
