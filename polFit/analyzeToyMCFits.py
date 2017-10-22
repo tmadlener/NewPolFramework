@@ -75,31 +75,55 @@ def get_input_lambdas(inputjson):
             data['ref']['lthsig'], data['ref']['lphsig'], data['ref']['ltpsig']]
 
 
-def calc_mean_std_min_max(vals):
+def calc_mean_std_min_max(vals, converged=None):
     """
     Calculate the (column-wise) mean, std deviation, min and max of the passed
-    values
+    values, also the pulls if vals has two columns
     """
     # put values into numpy array for easier computation of column wise values
     vals = np.array(vals)
-    mean = vals.mean(axis=0)
-    std = vals.std(axis=0)
-    vmax = vals.max(axis=0)
-    vmin = vals.min(axis=0)
+    # determine the number of columns in the passed array (have to handle 1 dim arrays)
+    cols = 1 if len(vals.shape) == 1 else vals.shape[1]
 
-    return np.array(list(flatten([mean, std, vmin, vmax])))
+    # use only the values from converged runs if available
+    if converged is not None:
+        vals = vals[converged]
+
+    if vals.size != 0:
+        mean = vals.mean(axis=0)
+        std = vals.std(axis=0)
+        vmax = vals.max(axis=0)
+        vmin = vals.min(axis=0)
+
+        if cols == 2:
+            pulls = np.abs(vals[:,0] / vals[:,1])
+            mean_pull = np.mean(pulls)
+            std_pull = np.std(pulls)
+        else:
+            mean_pull = 0
+            std_pull = 0
+
+        return np.array(list(flatten([mean, std, vmin, vmax, mean_pull, std_pull])))
+
+    # if no fit converged return appropriately sized list of nans
+    nan_array = np.empty(cols * 6)
+    nan_array.fill(np.NaN)
+    return nan_array
 
 
 def check_converged(lth_vals, significance=0.1):
     """
     Check how many of the fits converged by checking the significance of the lth results
     """
-    conv = 0
+    conv = []
     for lth, err in lth_vals:
         if any(np.isnan([lth, err])):
+            conv.append(False)
             continue
         if abs(lth / err) < significance:
-            conv += 1
+            conv.append(True)
+        else:
+            conv.append(False)
 
     return conv
 
@@ -128,15 +152,18 @@ def get_result_lambdas(inputjson, conv_sigmas):
     lambda_idcs = [0, 1, 2, 3, 4, 6]
     iter_idcs = [0, 2, 3]
 
-    lth_res = calc_mean_std_min_max(lth_vals)[lambda_idcs]
-    lph_res = calc_mean_std_min_max(lph_vals)[lambda_idcs]
-    ltp_res = calc_mean_std_min_max(ltp_vals)[lambda_idcs]
-    lth_final_res = calc_mean_std_min_max(lth_finals)[lambda_idcs]
-    iterations = calc_mean_std_min_max(iterations)[iter_idcs]
-
     converged = check_converged(lth_finals, conv_sigmas)
 
-    return [lth_res, lph_res, ltp_res, lth_final_res, iterations, converged, len(resfiles)]
+    lth_res = calc_mean_std_min_max(lth_vals, converged)
+    lth_res = lth_res[lambda_idcs]
+    lph_res = calc_mean_std_min_max(lph_vals, converged)[lambda_idcs]
+    ltp_res = calc_mean_std_min_max(ltp_vals, converged)[lambda_idcs]
+    # also get pulls for the final values
+    lth_final_res = calc_mean_std_min_max(lth_finals, converged)
+    lth_final_res = lth_final_res[lambda_idcs + [8, 9]]
+    iterations = calc_mean_std_min_max(iterations)[iter_idcs]
+
+    return [lth_res, lph_res, ltp_res, lth_final_res, iterations, np.sum(converged), len(resfiles)]
 
 
 def create_dataframe(basedir, conv_sigmas):
@@ -152,9 +179,10 @@ def create_dataframe(basedir, conv_sigmas):
     in_columns = ['lth_data', 'lph_data', 'ltp_data', 'lth_ref', 'lph_ref', 'ltp_ref']
     res_columns = [
         'lth_mean', 'lth_err_mean', 'lth_std', 'lth_err_std', 'lth_min', 'lth_max',
-        'lth_f_mean', 'lth_f_err_mean', 'lth_f_std', 'lth_f_err_std', 'lth_f_min', 'lth_f_max',
         'lph_mean', 'lph_err_mean', 'lph_std', 'lph_err_std', 'lph_min', 'lph_max',
         'ltp_mean', 'ltp_err_mean', 'ltp_std', 'ltp_err_std', 'ltp_min', 'ltp_max',
+        'lth_f_mean', 'lth_f_err_mean', 'lth_f_std', 'lth_f_err_std', 'lth_f_min',
+        'lth_f_max', 'lth_f_pull_mean', 'lth_f_pull_std',
         'iter_mean', 'iter_min', 'iter_max', 'n_conv', 'n_fits'
     ]
 
