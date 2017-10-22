@@ -14,7 +14,7 @@ def parse_output(output):
 
     Returns the final values of lth, lph and ltp (at the support points)
     """
-    float_rgx = r'((-?[0-9].+[0-9]+)|(nan))' # floating point regex that also matches nans
+    float_rgx = r'((-?[0-9]+(.+[0-9]+)?)|(nan))' # floating point regex that also matches nans
     support_rgx = r'x = ' + float_rgx + r':\n'
     lth_rgx = r'\s*lth = ' + float_rgx + r' \+/- ' + float_rgx
     lph_rgx = r'\s*lph = ' + float_rgx + r' \+/- ' + float_rgx
@@ -27,7 +27,7 @@ def parse_output(output):
             # with the regex defined as above we have for each match 3 groups, where
             # 1 + i is the index of the value that we want to convert to a float for the
             # i-th match
-            group_idcs = xrange(1, len(m.groups()) + 1, 3)
+            group_idcs = xrange(1, len(m.groups()) + 1, 4)
             return [float(m.group(i)) for i in group_idcs]
         else:
             return None
