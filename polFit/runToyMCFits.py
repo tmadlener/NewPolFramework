@@ -46,6 +46,32 @@ def submit_job(datafile, reffile, outfile):
                    })
 
 
+def get_io_combi(datafile, reffile, outbase, only_same_gen=True):
+    """
+    Get the three tuple of datafile, inputfile, outputfile
+    """
+    def get_lth(filename):
+        m = re.search('lth_(-?[0-9]+p[0-9]{2})', filename)
+        if m:
+            return m.group(1)
+        else:
+            return None
+
+    data_gen = getBinIdx(datafile, 'gen_')
+    ref_gen = getBinIdx(reffile, 'gen_')
+    if only_same_gen and ref_gen != data_gen:
+        return None
+
+    data_lth = get_lth(datafile)
+    ref_lth = get_lth(reffile)
+
+    outdir = '_'.join(['data', 'lth', data_lth, 'ref', 'lth', ref_lth])
+    ofn = '_'.join(['fit', 'results', 'datagen', str(data_gen), 'refgen', str(ref_gen)])
+    outfile = '/'.join([outbase, outdir, ofn + '.root'])
+
+    return (datafile, reffile, outfile)
+
+
 def get_combinations(inputbase, outbase, only_same_gen=True):
     """
     Get the combinations of data and reference files and produce the appropriate output
@@ -54,31 +80,11 @@ def get_combinations(inputbase, outbase, only_same_gen=True):
     combis = []
     gen_files = glob.glob('/'.join([inputbase, 'lth_*_lph_*_ltp_*/genData_gen_*.root']))
 
-    def get_lth(filename):
-        m = re.search('lth_(-?[0-9]+p[0-9]{2})', filename)
-        if m:
-            return m.group(1)
-        else:
-            return None
-
     for df in gen_files:
-        data_lth = get_lth(df)
-        data_gen = getBinIdx(df, 'gen_')
-
         for rf in gen_files:
-            ref_lth = get_lth(rf)
-            ref_gen = getBinIdx(rf, 'gen_')
-
-            # if only same gen is true, only combine gen_X from data with gen_X from reference
-            # in this way we cut down significantly on combinatorics
-            if only_same_gen and ref_gen != data_gen:
-                continue
-
-            outdir = '_'.join(['data', 'lth', data_lth, 'ref', 'lth', ref_lth])
-            ofn = '_'.join(['fit', 'results', 'datagen', str(data_gen), 'refgen', str(ref_gen)])
-            outfile = '/'.join([outbase, outdir, ofn + '.root'])
-
-            combis.append((df, rf, outfile))
+            combi = get_io_combi(df, rf, outbase, only_same_gen)
+            if combi is not None:
+                combis.append(combi)
 
     return combis
 
@@ -92,10 +98,20 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--allCombis', action='store_true', dest='allCombis',
                         default=False, help='run all possible combinations of generations,'
                         ' instead of only running same generation data and reference')
+    parser.add_argument('-c', '--combinations', help='run specific combination of passed files',
+                        nargs='+', dest='combifiles', default=None)
+
 
     args = parser.parse_args()
 
-    data_ref_combis = get_combinations(args.genDataDir, args.outdir, not args.allCombis)
+    if len(args.combifiles) not in (0, 2):
+        parser.error('Need non or exactly two arguments')
+
+    if len(args.combifiles) > 0:
+        data_ref_combis = [get_io_combi(args.combifiles[0], args.combifiles[1], args.outdir, True)]
+    else:
+        data_ref_combis = get_combinations(args.genDataDir, args.outdir, not args.allCombis)
+
     for (datan, refn, outn) in data_ref_combis:
         submit_job(datan, refn, outn)
 
