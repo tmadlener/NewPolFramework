@@ -9,13 +9,17 @@ dataFileName=${1}
 refFileName=${2}
 treeName=${3} # same name for both ref and data
 outFileName=${4} # make sure that the folder this file points to already exists! (it will not be checked)
+maxIterations=${5}
+stopSignificance=${6}
+lthRefStart=${7}
 
 cd $(dirname ${outFileName})
 
 exe=${WORK}/NewPolMethodTests/Framework/polFit/run_iterative_fit.py
 
-python ${exe} --tree ${treeName} --nMaxIterations 10 --stopSignificance 0.5 \
-       --lthRefStart 0.5 ${dataFileName} ${refFileName} ${outFileName}
+python ${exe} --tree ${treeName} --nMaxIterations ${maxIterations} \
+       --stopSignificance ${stopSignificance} --lthRefStart ${lthRefStart} \
+       ${dataFileName} ${refFileName} ${outFileName}
 
 # capture exitcode
 exitcode=$?

@@ -159,8 +159,7 @@ def get_result_lambdas(inputjson, conv_sigmas):
 
     converged = check_converged(lth_finals, conv_sigmas)
 
-    lth_res = calc_mean_std_min_max(lth_vals, converged)
-    lth_res = lth_res[lambda_idcs]
+    lth_res = calc_mean_std_min_max(lth_vals, converged)[lambda_idcs]
     lph_res = calc_mean_std_min_max(lph_vals, converged)[lambda_idcs]
     ltp_res = calc_mean_std_min_max(ltp_vals, converged)[lambda_idcs]
     # also get pulls for the final values

@@ -18,10 +18,13 @@ def read_gen_config(genfile):
     return data
 
 
-def submit_job(datafile, reffile, outfile):
+def submit_job(datafile, reffile, outfile, maxIterations, significance, checkExact=False,
+               checkExactDiff=False, lthStart = 0.0):
     """Submit a batch job that runs one fit using the passed files"""
     condMkDirFile(outfile)
     outdir = os.path.dirname(outfile)
+
+    run_mode = 'normal' # for storage in the json file
 
     # combine data and refernce generator settings into one json and dump it to the output directory
     comb_config = {'data': read_gen_config(datafile),
@@ -29,8 +32,21 @@ def submit_job(datafile, reffile, outfile):
     with open('/'.join([outdir, 'input_lambdas.json']), 'w') as f:
         json.dump(comb_config, f, indent=2)
 
+    if checkExact or checkExactDiff:
+        max_iter = 1
+        if checkExact and not checkExactDiff:
+            lth_start = comb_config['ref']['lthsig']
+            run_mode = 'exact_ref'
+        if checkExactDiff and not checkExact:
+            lth_start = comb_config['data']['lthsig'] - comb_config['ref']['lthsig']
+            run_mode = 'exact_diff'
+    else:
+        max_iter = maxIterations
+        lth_start = lthStart
+
     batch_script = '/'.join([os.environ['WORK'], 'NewPolMethodTests/Framework/polFit/batchRunIterative.sh'])
-    cmd_list = ['sbatch', batch_script, datafile, reffile, 'genData', outfile]
+    cmd_list = ['sbatch', batch_script, datafile, reffile, 'genData', outfile,
+                str(max_iter), str(significance), str(lth_start)]
 
     # batch submission yields only 1 element in the list, from which the job id will be
     # retrieved. second index is for getting first (and only) element of tuple returned
@@ -42,13 +58,17 @@ def submit_job(datafile, reffile, outfile):
                     'sub_time': str(dt.datetime.now()),
                     'datafile': datafile,
                     'reffile': reffile,
-                    'outfile': os.path.basename(outfile)
+                    'outfile': os.path.basename(outfile),
+                    'lth_start': lth_start,
+                    'run_mode': run_mode
                    })
 
 
-def get_io_combi(datafile, reffile, outbase, only_same_gen=True):
+def get_io_combi(datafile, reffile, outbase, only_same_gen=False,
+                 ra_lth_ref=[-1,1], ra_lth_data=[-1,1]):
     """
     Get the three tuple of datafile, inputfile, outputfile
+    Default arguments are set, such that apriori every passed combination is accepted
     """
     def get_lth(filename):
         m = re.search('lth_(-?[0-9]+p[0-9]{2})', filename)
@@ -56,6 +76,11 @@ def get_io_combi(datafile, reffile, outbase, only_same_gen=True):
             return m.group(1)
         else:
             return None
+
+    def check_range(valstr, range_vals):
+        """Check if the valstr (where the comma dot is a 'p' is in range_vals)"""
+        val = float(valstr.replace('p', '.'))
+        return val >= range_vals[0] and val <= range_vals[1]
 
     data_gen = getBinIdx(datafile, 'gen_')
     ref_gen = getBinIdx(reffile, 'gen_')
@@ -65,6 +90,9 @@ def get_io_combi(datafile, reffile, outbase, only_same_gen=True):
     data_lth = get_lth(datafile)
     ref_lth = get_lth(reffile)
 
+    if not check_range(data_lth, ra_lth_data) or not check_range(ref_lth, ra_lth_ref):
+        return None
+
     outdir = '_'.join(['data', 'lth', data_lth, 'ref', 'lth', ref_lth])
     ofn = '_'.join(['fit', 'results', 'datagen', str(data_gen), 'refgen', str(ref_gen)])
     outfile = '/'.join([outbase, outdir, ofn + '.root'])
@@ -72,7 +100,8 @@ def get_io_combi(datafile, reffile, outbase, only_same_gen=True):
     return (datafile, reffile, outfile)
 
 
-def get_combinations(inputbase, outbase, only_same_gen=True):
+def get_combinations(inputbase, outbase, only_same_gen=True,
+                     ra_lth_ref=[-1,1], ra_lth_data=[-1,1]):
     """
     Get the combinations of data and reference files and produce the appropriate output
     file for it.
@@ -82,7 +111,7 @@ def get_combinations(inputbase, outbase, only_same_gen=True):
 
     for df in gen_files:
         for rf in gen_files:
-            combi = get_io_combi(df, rf, outbase, only_same_gen)
+            combi = get_io_combi(df, rf, outbase, only_same_gen, ra_lth_ref, ra_lth_data)
             if combi is not None:
                 combis.append(combi)
 
@@ -99,20 +128,49 @@ if __name__ == '__main__':
                         default=False, help='run all possible combinations of generations,'
                         ' instead of only running same generation data and reference')
     parser.add_argument('-c', '--combinations', help='run specific combination of passed files',
-                        nargs='+', dest='combifiles', default=None)
+                        nargs='+', dest='combifiles', default=[])
+    parser.add_argument('-n', '--nMaxIterations', help='maximum number of iterations',
+                        dest='maxIterations', default=-1, type=int)
+    parser.add_argument('-s', '--stopSignificance', help='significance to stop the iteration',
+                        default=0.25, type=float, dest='sigmas')
+    parser.add_argument('-x', '--checkExact', default=False, dest='checkExact',
+                        action='store_true', help='Run the fit only once, but use the '
+                        'exact lambda_theta reference as input to check if the output '
+                        'is lambda_theta data')
+    parser.add_argument('-d', '--checkExactDiff', default=False, action='store_true',
+                        dest='checkExactDiff', help='Run the fit only once but use the '
+                        'exact lambda difference (data - reference) as input to check if '
+                        'the output is zero')
+    parser.add_argument('-l', '--lthRefStart', type=float, default=0.0, dest='lthRefStart',
+                        help='Starting value for lth_ref in the iterative fit')
+    parser.add_argument('-rlr', '--rangeLthRef', default=[-1,1], dest='rangeLthRef',
+                        help='Range of lth_ref to consider in the combinations')
+    parser.add_argument('-rld', '--rangeLthData', default=[-1,1], dest='rangeLthData',
+                        help='Range of lth_data to consider in the combinations')
 
 
     args = parser.parse_args()
 
     if len(args.combifiles) not in (0, 2):
-        parser.error('Need non or exactly two arguments')
+        parser.error('Need non or exactly two arguments for --combinations')
+
+    if args.checkExact and args.checkExactDiff:
+        parser.error('Only one of checkExact and checkExactDiff can be true at the same time')
 
     if len(args.combifiles) > 0:
-        data_ref_combis = [get_io_combi(args.combifiles[0], args.combifiles[1], args.outdir, True)]
+        data_ref_combis = [get_io_combi(args.combifiles[0], args.combifiles[1], args.outdir)]
     else:
-        data_ref_combis = get_combinations(args.genDataDir, args.outdir, not args.allCombis)
+        rangeLthRef = sorted([float(v) for v in args.rangeLthRef.split(',')])
+        rangeLthData = sorted([float(v) for v in args.rangeLthData.split(',')])
+        if len(rangeLthRef) != 2 or len(rangeLthData) != 2:
+            parser.error('rangeLthRef and rangeLthData need to have two (comma-separated)'
+                         ' elements that can be converted to floats')
+
+        data_ref_combis = get_combinations(args.genDataDir, args.outdir, not args.allCombis,
+                                           rangeLthRef, rangeLthData)
 
     for (datan, refn, outn) in data_ref_combis:
-        submit_job(datan, refn, outn)
+        submit_job(datan, refn, outn, args.maxIterations, args.sigmas,
+                   args.checkExact, args.checkExactDiff, args.lthRefStart)
 
     print('Submitted {} jobs to the batch system'.format(len(data_ref_combis)))
