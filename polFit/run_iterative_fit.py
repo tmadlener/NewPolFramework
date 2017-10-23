@@ -88,21 +88,22 @@ def check_stop(lambdas, sigmas=1.0):
     return abs(lth[0] / lth[1]) < sigmas
 
 
-def calc_ref_lth(iteration_results):
+def calc_ref_lth(iteration_results, start_val=0):
     """
     Calculate the reference lambda from the previous iteration results
 
     NOTE: currently only constant lth is supported (no parametrization)
     """
-    if len(iteration_results) == 0: return 0 # no iteration yet, so start at 0
-    ref_lth = 0
+    if len(iteration_results) == 0:
+        return start_val # no iteration yet, so start at 0
+    ref_lth = start_val
     for res in iteration_results:
         ref_lth -= get_val(res, 'lth')[0]
 
     return ref_lth
 
 
-def run(datafile, reffile, outfile, treename, sigmaStop, maxIterations):
+def run(datafile, reffile, outfile, treename, sigmaStop, maxIterations, lth_ref_start=0):
     """
     Run the iterative scheme, either until it converges (determined by sigmaStop) or until
     the maximum number of iterations is reached
@@ -110,11 +111,12 @@ def run(datafile, reffile, outfile, treename, sigmaStop, maxIterations):
     iter_results = []
     it = 0
     while maxIterations < 0 or it < maxIterations:
-        curr_ref = calc_ref_lth(iter_results)
+        curr_ref = calc_ref_lth(iter_results, lth_ref_start)
         results = run_fit(curr_ref, datafile, reffile, outfile, treename)
 
 
         results["iteration"] = it # embed information of iteration into the results
+        results['lth_ref_input'] = curr_ref # embed starting lth_ref into json
         iter_results.append(results)
 
         if check_stop(results, sigmaStop): break
@@ -135,8 +137,11 @@ if __name__ == '__main__':
                         dest='maxIterations', default=-1, type=int)
     parser.add_argument('-s', '--stopSignificance', help='significance to stop the iteration',
                         default=0.25, type=float, dest='sigmas')
+    parser.add_argument('-l', '--lthRefStart', type=float, default=0.0, dest='lthRefStart',
+                        help='Starting value for lth_ref in the iterative fit')
+
 
     args = parser.parse_args()
 
     run(args.dataFileName, args.refFileName, args.outFileName, args.tree,
-        args.sigmas, args.maxIterations)
+        args.sigmas, args.maxIterations, args.lthRefStart)

@@ -15,7 +15,7 @@ cd $(dirname ${outFileName})
 exe=${WORK}/NewPolMethodTests/Framework/polFit/run_iterative_fit.py
 
 python ${exe} --tree ${treeName} --nMaxIterations 10 --stopSignificance 0.5 \
-       ${dataFileName} ${refFileName} ${outFileName}
+       --lthRefStart 0.5 ${dataFileName} ${refFileName} ${outFileName}
 
 # capture exitcode
 exitcode=$?

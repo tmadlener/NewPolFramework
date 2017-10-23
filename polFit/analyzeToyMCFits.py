@@ -56,7 +56,12 @@ def get_final_results(resultjson):
 
     all_lth = get_all_vals(data, 'lth')
 
-    sum_ref_lth = np.sum(all_lth, axis=0)[0] # only need the central value
+    if 'lth_ref_input' in final_vals:
+        sum_ref_lth = final_vals['lth_ref_input']
+    else: # for backwards compatibility
+        sum_ref_lth = np.sum(all_lth, axis=0)[0] # only need the central value
+        # subtract the value from the last fit, since that was not in the input
+        sum_ref_lth -= vals['lth'][0]
 
     res_lth = [final_lth[0] + sum_ref_lth, final_lth[1]]
     vals['lth_res'] = res_lth
