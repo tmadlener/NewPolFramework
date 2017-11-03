@@ -65,10 +65,13 @@ def submit_job(datafile, reffile, outfile, maxIterations, significance, checkExa
 
 
 def get_io_combi(datafile, reffile, outbase, only_same_gen=False,
-                 ra_lth_ref=[-1,1], ra_lth_data=[-1,1]):
+                 ra_lth_ref=[-1,1], ra_lth_data=[-1,1], shift_gen=False):
     """
     Get the three tuple of datafile, inputfile, outputfile
     Default arguments are set, such that apriori every passed combination is accepted
+    - shift_gen pairs generations which are off by one
+    - only_same_gen pairs only same generations
+    - they cannot be set simultaneously (will always return false that way)
     """
     def get_lth(filename):
         m = re.search('lth_(-?[0-9]+p[0-9]{2})', filename)
@@ -86,6 +89,14 @@ def get_io_combi(datafile, reffile, outbase, only_same_gen=False,
     ref_gen = getBinIdx(reffile, 'gen_')
     if only_same_gen and ref_gen != data_gen:
         return None
+
+    # if we want shifted (by 1) generations, check if data_gen == ref_gen + 1
+    # the % 10 is to wrap around at 10. (So that 10 and 1 are paired)
+    # NOTE: If there are more then 10 generations this will break (i.e. lead to less
+    # thane xpected combinations)
+    if shift_gen:
+        if data_gen % 10 != (ref_gen + 1) % 10:
+            return None
 
     data_lth = get_lth(datafile)
     ref_lth = get_lth(reffile)
@@ -111,7 +122,11 @@ def get_combinations(inputbase, outbase, only_same_gen=True,
 
     for df in gen_files:
         for rf in gen_files:
-            combi = get_io_combi(df, rf, outbase, only_same_gen, ra_lth_ref, ra_lth_data)
+            # use shift_gen if only_same_gen is specified, since it is here mainly to
+            # avoid a combinatoric explosion
+            # NOTE: this currently assumes that there are only 10 generations
+            combi = get_io_combi(df, rf, outbase, False,
+                                 ra_lth_ref, ra_lth_data, only_same_gen)
             if combi is not None:
                 combis.append(combi)
 
