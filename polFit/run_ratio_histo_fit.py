@@ -70,6 +70,8 @@ def def_fit_func(name='', chic1_limits=True, fix_ref=None, fit_range=[-1,1]):
               '[0] * (1.0 + ([1] + [2]) * x[0]*x[0]) / (1.0 + [1] * x[0]*x[0])',
               fit_range[0], fit_range[1])
 
+    f.SetParameters(0, 0, 0)
+
     if chic1_limits:
         f.SetParLimits(1, -0.3, 1)
 
@@ -111,7 +113,7 @@ def do_fit(datah, refh, chic1_limits=True, fix_ref=None, fit_range=False):
 
     print('Fit returned status {} when fitting the ratio of '
           '{} to {}'.format(int(fit_rlt), datah.GetName(), refh.GetName()))
-    return None
+    return (None, ratio)
 
 
 def extract_par_from_result(fit_rlt):
@@ -149,9 +151,9 @@ def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range):
     refh.Write()
 
     fit_rlt, ratio = do_fit(datah, refh, chic1_limits, fix_ref, fit_range)
+    ratio.Write()
     if fit_rlt is not None:
         fit_rlt.Write('fit_result_costh_ratio')
-        ratio.Write()
         with open(outfn.replace('.root', '.json'), 'w') as f:
             json.dump(extract_par_from_result(fit_rlt), f, indent=2)
 
