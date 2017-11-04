@@ -10,7 +10,9 @@ import ROOT as r
 # TH1s that are created in a function, where the file is only in scope for the function,
 # get destroyed once the TFile is closed, resulting in a None, when the histo is
 # accessed later.
-# To avoid having TFiles going out of scope to early, collect them in this global list.
+# I have tried to set the according bit in the TH1s, but then they can't be written to
+# the output file either
+# To avoid having TFiles going out of scope too early, collect them in this global list.
 _open_files = []
 
 
@@ -158,6 +160,10 @@ def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range):
             json.dump(extract_par_from_result(fit_rlt), f, indent=2)
 
     outfile.Close()
+    # close them here, since this function might get called from another python script
+    # leading to too many open files
+    for f in _open_files:
+        f.Close()
 
 
 if __name__ == '__main__':

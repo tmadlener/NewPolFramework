@@ -20,6 +20,7 @@ def run_fits(gen_dir, out_dir, chic1_limits=False, fix_ref=False, fix_range=Fals
         if fix_ref:
             ref_lth = read_gen_config(reff)['lthsig']
 
+        print('Data file: {}, reference file {}'.format(dataf, reff))
         run(dataf, reff, outf, "genData", chic1_limits, ref_lth, fix_range)
 
 
