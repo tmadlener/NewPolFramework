@@ -39,7 +39,7 @@ def create_histo(filename, weight, treename='genData', name=''):
     return hist
 
 
-def get_histos(refn, datan, treen):
+def get_histos(datan, refn, treen):
     """
     Get the costh_PX histogram from the reference and the data file
     """
