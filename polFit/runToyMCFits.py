@@ -158,9 +158,9 @@ if __name__ == '__main__':
                         'the output is zero')
     parser.add_argument('-l', '--lthRefStart', type=float, default=0.0, dest='lthRefStart',
                         help='Starting value for lth_ref in the iterative fit')
-    parser.add_argument('-rlr', '--rangeLthRef', default=[-1,1], dest='rangeLthRef',
+    parser.add_argument('-rlr', '--rangeLthRef', default='-1,1', dest='rangeLthRef',
                         help='Range of lth_ref to consider in the combinations')
-    parser.add_argument('-rld', '--rangeLthData', default=[-1,1], dest='rangeLthData',
+    parser.add_argument('-rld', '--rangeLthData', default='-1,1', dest='rangeLthData',
                         help='Range of lth_data to consider in the combinations')
 
 

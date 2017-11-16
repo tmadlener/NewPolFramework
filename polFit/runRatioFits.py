@@ -2,7 +2,7 @@
 
 import argparse
 
-from runToyMCFits import read_gen_config, get_combinations, read_gen_config
+from runToyMCFits import read_gen_config, get_combinations
 from run_ratio_histo_fit import run
 from utils.miscHelpers import condMkDirFile
 
