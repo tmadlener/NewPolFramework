@@ -1609,6 +1609,15 @@ void polPPD(const std::string& sigFileN, const std::string& refFileN,
   cout << "   lph = " << lph3 << " +/- " << dlph3 << endl;
   cout << "   ltp = " << ltp3 << " +/- " << dltp3 << endl;
 
+  double max_logL = std::numeric_limits<double>::min();
+  for (size_t i = 0; i < n_variations_of_reference; ++i) {
+    if (lnPPD_max[i] > max_logL) {
+      max_logL = lnPPD_max[i];
+    }
+  }
+
+  cout << "\n   max_logL = " << max_logL  << "\n";
+
   timer->Stop();
   cout << endl << "CPU time:  " << int(timer->CpuTime()) << " s" << endl;
   cout         << "Real time: " << int(timer->RealTime()) << " s" << endl << endl;

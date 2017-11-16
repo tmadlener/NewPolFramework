@@ -19,6 +19,7 @@ def parse_output(output):
     lth_rgx = r'\s*lth = ' + float_rgx + r' \+/- ' + float_rgx
     lph_rgx = r'\s*lph = ' + float_rgx + r' \+/- ' + float_rgx
     ltp_rgx = r'\s*ltp = ' + float_rgx + r' \+/- ' + float_rgx
+    maxll_rgx = r'\s*max_logL = ' + float_rgx
 
     def match_and_extract_floats(string, rgx):
         """Match the string against the regex and extract all floating numbers from it"""
@@ -40,6 +41,7 @@ def parse_output(output):
 
     results = {}
     current_support = None
+    max_logL = None
 
     for output_line in output:
         line = output_line[0]
@@ -55,6 +57,11 @@ def parse_output(output):
         cond_insert(results, current_support, match_and_extract_floats(line, lph_rgx), 'lph')
         cond_insert(results, current_support, match_and_extract_floats(line, ltp_rgx), 'ltp')
 
+        if max_logL is None: # only extract if it hasn't already happend, to not overwrite it
+            max_logL = match_and_extract_floats(line, maxll_rgx)
+
+    if max_logL is not None:
+        results['max_logL'] = max_logL[0]
     return results
 
 
