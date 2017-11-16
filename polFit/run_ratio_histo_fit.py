@@ -132,7 +132,7 @@ def extract_par_from_result(fit_rlt):
 
 
 
-def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range):
+def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True):
     """
     Run the fit for a given data and reference file, store the histograms
     and fit results into a root file and the results in a json file that can be
@@ -141,30 +141,37 @@ def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range):
     # get the histograms and set negtaive bins to zero
     datah, refh = get_histos(datafn, reffn, treen)
 
-    outfile = r.TFile(outfn, 'recreate')
-    outfile.cd()
+    if save:
+        outfile = r.TFile(outfn, 'recreate')
+        outfile.cd()
 
-    datah.Write('_'.join([datah.GetName(), 'raw']))
-    refh.Write('_'.join([refh.GetName(), 'raw']))
+        datah.Write('_'.join([datah.GetName(), 'raw']))
+        refh.Write('_'.join([refh.GetName(), 'raw']))
 
     set_neg_bins_to_zero(datah, True)
     set_neg_bins_to_zero(refh, True)
-    datah.Write()
-    refh.Write()
+
+    if save:
+        datah.Write()
+        refh.Write()
 
     fit_rlt, ratio = do_fit(datah, refh, chic1_limits, fix_ref, fit_range)
-    ratio.Write()
-    if fit_rlt is not None:
+    if save:
+        ratio.Write()
+    fit_result_dict = None if fit_rlt is None else extract_par_from_result(fit_rlt)
+    if fit_rlt is not None and save:
         fit_rlt.Write('fit_result_costh_ratio')
         with open(outfn.replace('.root', '.json'), 'w') as f:
-            json.dump(extract_par_from_result(fit_rlt), f, indent=2)
+            json.dump(fit_result_dict, f, indent=2)
 
-    outfile.Close()
+    if save:
+        outfile.Close()
     # close them here, since this function might get called from another python script
     # leading to too many open files
     for f in _open_files:
         f.Close()
 
+    return fit_result_dict
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Script that runs a costh ratio fit using histograms')
