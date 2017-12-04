@@ -43,8 +43,12 @@ def get_histos(datan, refn, treen):
     """
     Get the costh_PX histogram from the reference and the data file
     """
-    datahist = create_histo(datan, weight='wS', name='h_costh_PX_chic2', treename=treen)
-    refhist = create_histo(refn, weight='wS', name='h_costh_PX_chic1', treename=treen)
+    if treen == 'chic_tuple':
+        datahist = create_histo(datan, weight='wChic2', name='h_costh_PX_chic2', treename=treen)
+        refhist = create_histo(refn, weight='wChic1', name='h_costh_PX_chic1', treename=treen)
+    else:
+        datahist = create_histo(datan, weight='wS', name='h_costh_PX_chic2', treename=treen)
+        refhist = create_histo(refn, weight='wS', name='h_costh_PX_chic1', treename=treen)
 
     return (datahist, refhist)
 
@@ -62,14 +66,16 @@ def set_neg_bins_to_zero(h, verbose=False):
             print('Set bin {} to 0, content was {}'.format(nb, cont))
 
 
-def def_fit_func(name='', chic1_limits=True, fix_ref=None, fit_range=[-1,1]):
+def def_fit_func(name='', chic1_limits=True, fix_ref=None, fit_range=[-1,1],
+                 fix_norm=None):
     """
     Define the fitting function
     """
     if not name:
         name = 'W_costh_ratio'
     f = r.TF1(name,
-              '[0] * (1.0 + ([1] + [2]) * x[0]*x[0]) / (1.0 + [1] * x[0]*x[0])',
+              '[0] * (3 + [1]) / (3 + [1] + [2]) * (1.0 + ([1] + [2]) * x[0]*x[0]) / (1.0 + [1] * x[0]*x[0])',
+              # '[0] * (1.0 + ([1] + [2]) * x[0]*x[0]) / (1.0 + [1] * x[0]*x[0])',
               fit_range[0], fit_range[1])
 
     f.SetParameters(0, 0, 0)
@@ -80,6 +86,9 @@ def def_fit_func(name='', chic1_limits=True, fix_ref=None, fit_range=[-1,1]):
     # don't have to check if chic1_limits is true, this overrides it in any cas
     if fix_ref is not None:
         f.FixParameter(1, fix_ref)
+
+    if fix_norm is not None:
+        f.FixParameter(0, fix_norm)
 
     return f
 
@@ -94,7 +103,8 @@ def divide(datah, refh):
     return ratioh
 
 
-def do_fit(datah, refh, chic1_limits=True, fix_ref=None, fit_range=False):
+def do_fit(datah, refh, chic1_limits=True, fix_ref=None, fit_range=False, fix_norm=False,
+           run_quiet=False):
     """
     Do the fit and return the fit results
     """
@@ -105,10 +115,18 @@ def do_fit(datah, refh, chic1_limits=True, fix_ref=None, fit_range=False):
         filled_bins = [i for i, b in enumerate(ratio) if b != 0]
         range_to_fit = [ratio.GetBinLowEdge(filled_bins[0]),
                         ratio.GetBinLowEdge(filled_bins[-1]) + ratio.GetBinWidth(filled_bins[-1])]
+    if fix_norm:
+        fix_norm = datah.Integral() / refh.Integral()
+    else: fix_norm=None
 
-    fit_func = def_fit_func(chic1_limits=chic1_limits, fix_ref=fix_ref, fit_range=range_to_fit)
+    fit_func = def_fit_func(chic1_limits=chic1_limits, fix_ref=fix_ref, fit_range=range_to_fit,
+                            fix_norm=fix_norm)
 
-    fit_rlt = ratio.Fit(fit_func, 'SR')
+    fitRunOpts = 'SR'
+    if run_quiet:
+        fitRunOpts += 'q'
+
+    fit_rlt = ratio.Fit(fit_func, fitRunOpts)
     ratio.GetListOfFunctions().Clear()
     if int(fit_rlt) == 0:
         return (fit_rlt, ratio)
@@ -132,7 +150,8 @@ def extract_par_from_result(fit_rlt):
 
 
 
-def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True):
+def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True,
+        fix_norm=False):
     """
     Run the fit for a given data and reference file, store the histograms
     and fit results into a root file and the results in a json file that can be
@@ -155,7 +174,7 @@ def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True
         datah.Write()
         refh.Write()
 
-    fit_rlt, ratio = do_fit(datah, refh, chic1_limits, fix_ref, fit_range)
+    fit_rlt, ratio = do_fit(datah, refh, chic1_limits, fix_ref, fit_range, fix_norm)
     if save:
         ratio.Write()
     fit_result_dict = None if fit_rlt is None else extract_par_from_result(fit_rlt)
@@ -185,6 +204,8 @@ if __name__ == '__main__':
                         help='fix ref_lth to this value in fits')
     parser.add_argument('-r', '--fix_range', action='store_true', default=False, dest='fit_range',
                         help='fix the range to the bins that are filled in the histogram.')
+    parser.add_argument('-n', '--fix_norm', action='store_true', default=False, dest='fix_norm',
+                        help='fix the normalization to the ratio of the entries of the histograms')
 
 
     args = parser.parse_args()
@@ -192,4 +213,4 @@ if __name__ == '__main__':
     r.gROOT.SetBatch()
 
     run(args.dataFileName, args.refFileName, args.outFileName,
-        args.tree, args.limit, args.fix_ref, args.fit_range)
+        args.tree, args.limit, args.fix_ref, args.fit_range, True, args.fix_norm)
