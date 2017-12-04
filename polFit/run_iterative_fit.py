@@ -138,7 +138,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='script to run the iterative fitting procedure')
     parser.add_argument('dataFileName', help='filename of data tuple')
     parser.add_argument('refFileName', help='filename of ref tuple')
-    parser.add_argument('outFileName', help='output file name', default='polPPD.root')
+    parser.add_argument('outFileName', help='output file name', default='polPPD.root', nargs='?')
     parser.add_argument('-t', '--treename', help='treename', dest='tree', default='genData')
     parser.add_argument('-n', '--nMaxIterations', help='maximum number of iterations',
                         dest='maxIterations', default=-1, type=int)
