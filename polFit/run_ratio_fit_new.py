@@ -45,9 +45,10 @@ def flat_list_tuple(tup_list):
     return ((fix_funcs, val_comb) for val_comb in val_comb_gen)
 
 
-def calc_mean_norm(datafn, reffn, treen):
+def calc_mean_norm(datafn, reffn, treen, n_bins):
     """calculate the mean normalization"""
-    scan_res = run_scan(datafn, reffn, treen, ref_range=[-1,1], n_points=10)
+    scan_res = run_scan(datafn, reffn, treen, ref_range=[-1,1], n_points=10,
+                        n_bins=n_bins)
     scan_res = pd.DataFrame(scan_res)
     # get mean normalization and min and max value to check stability
     norm = scan_res.N.apply(lambda x: x[0])
@@ -63,10 +64,11 @@ def calc_mean_norm(datafn, reffn, treen):
     return mean_norm
 
 
-def get_free_norm(datafn, reffn, treen):
+def get_free_norm(datafn, reffn, treen, n_bins):
     """calculate the normalization from a fit with all free parameters"""
     fit_results = run(datafn, reffn, '', treen, chic1_limits=False,
-                      fix_ref=None, fit_range=False, save=False, fix_norm=False)
+                      fix_ref=None, fit_range=False, save=False, fix_norm=False,
+                      n_bins=n_bins)
 
     if fit_results is not None:
         print('Normalization from free fit = {} +/- {}'.format(fit_results['N'][0], fit_results['N'][1]))
@@ -178,18 +180,22 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
     best_fit = get_best_fit(fit_rlts[0])
 
     scan_results = scan_chi2_params(ratioh, func, par_scan_settings)
+    # it is possible that the scanning actually finds a (slightly) better minimum
+    # than the minimization from the fit. If that is the case use the new minimum chi2
+    # value for the plot and also indicate the better result in the plot
+    scan_smaller_minimization = np.any(scan_results.chi2 < min_chi2)
+    if scan_smaller_minimization:
+        min_chi2 = scan_results.chi2.min()
+
     for _,vals in scan_results.iterrows():
         if vals.chi2 - min_chi2 > 25:
             continue
         i_bin = plotHist.FindBin(vals.lth_ref, vals.delta_lth)
         plotHist.SetBinContent(i_bin, vals.chi2 - min_chi2)
 
-    # it is possible that the scanning actually finds a (slightly) better minimum
-    # than the minimization from the fit, so to have plots with white space, where
-    # the histogram has not been filled, set all bins with content zero to -1
-    # and adjust the color range to include slightly negative values
-    scan_smaller_minimization = np.any(scan_results.chi2 < min_chi2)
-    for i,b in enumerate(plotHist):
+    # not all bins get filled above. To have them appear white, change their
+    # value to -1
+    for i, b in enumerate(plotHist):
         if b == 0:
             plotHist.SetBinContent(i, -1)
 
@@ -208,7 +214,8 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
     plotHist.Draw('colz')
     for i, rlts in enumerate(fit_rlts):
         scan_cont = False
-        if rlts['contour'] is None: # catch cases of failing contour
+        # catch cases of failing contour or new minimum in scanning
+        if rlts['contour'] is None or scan_smaller_minimization:
             scan_fit_results.append(get_contour_scan(scan_results, min_chi2, rlts['err_level']))
             contour = scan_fit_results[-1]['contour']
             scan_cont = True
@@ -221,7 +228,8 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
         label_add = ' scan' if scan_cont else ''
         add_clone_to_leg(leg, contour, line_labels[i] + label_add, 'L')
 
-    if scan_fit_results and scan_smaller_minimization:
+    # if scan_fit_results and scan_smaller_minimization:
+    if scan_smaller_minimization:
         scan_best_fit = get_best_fit(scan_fit_results[0])
         scan_best_fit.SetMarkerStyle(23)
         scan_best_fit.SetMarkerColor(0)
@@ -272,16 +280,16 @@ def print_result(fit_result):
                                                                     -fit_result['low_errors'][2]))
 
 
-def main(datafn, reffn, outbase, treen):
+def main(datafn, reffn, outbase, treen, n_bins):
     # first run a scan to check how stable the normalization is
-    mean_norm = calc_mean_norm(datafn, reffn, treen)
-    # mean_norm = get_free_norm(datafn, reffn, treen)
+    # mean_norm = calc_mean_norm(datafn, reffn, treen, n_bins)
+    mean_norm = get_free_norm(datafn, reffn, treen, n_bins)
 
     fit_func = r.TF1('fit_func',
                      '[0] * (3 + [1]) / (3 + [1] + [2]) * (1 + ([1] + [2]) * x[0]*x[0]) / (1 + [1] * x[0]*x[0])',
                      -1, 1)
 
-    datah, refh = get_histos(datafn, reffn, treen)
+    datah, refh = get_histos(datafn, reffn, treen, n_bins)
     ratioh = divide(datah, refh)
     ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, mean_norm)])
 
@@ -308,8 +316,11 @@ if __name__ == '__main__':
                         default='fit_output')
     parser.add_argument('-t', '--treename', default='chic_tuple',
                         help='name of tree in input files')
+    parser.add_argument('-n', '--nbins', default=32, type=int,
+                        help='number of bins to use in costh')
 
 
     args = parser.parse_args()
 
-    main(args.data_file_name, args.ref_file_name, args.output_base, args.treename)
+    main(args.data_file_name, args.ref_file_name, args.output_base,
+         args.treename, args.nbins)

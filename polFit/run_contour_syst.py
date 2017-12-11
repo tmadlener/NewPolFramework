@@ -10,10 +10,10 @@ from run_ratio_fit_new import get_free_norm, error_levels
 from runToyMCFits import read_gen_config, get_combinations
 
 
-def run_one_fit(datafn, reffn, treen):
+def run_one_fit(datafn, reffn, treen, n_bins):
     """Run fit for one data and reference file"""
     import ROOT as r
-    norm = get_free_norm(datafn, reffn, treen)
+    norm = get_free_norm(datafn, reffn, treen, n_bins)
 
     if norm is None:
         return None
@@ -22,7 +22,7 @@ def run_one_fit(datafn, reffn, treen):
                      '[0] * (3 + [1]) / (3 + [1] + [2]) * (1 + ([1] + [2]) * x[0]*x[0]) / (1 + [1] * x[0]*x[0])',
                      -1, 1)
 
-    datah, refh = get_histos(datafn, reffn, treen)
+    datah, refh = get_histos(datafn, reffn, treen, n_bins)
     ratioh = divide(datah, refh)
     ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, norm)])
 
@@ -30,7 +30,7 @@ def run_one_fit(datafn, reffn, treen):
 
 
 
-def run_all_gens(gendir, treename):
+def run_all_gens(gendir, treename, n_bins):
     """Run all combinations of data and ref files"""
     data_ref_combis = get_combinations(gendir, 'foo', True, ra_lth_ref=[0.5,0.5],
                                        ra_lth_data=[-0.5,-0.5])
@@ -38,7 +38,7 @@ def run_all_gens(gendir, treename):
     results = []
 
     for dataf, reff, _ in data_ref_combis:
-        fit_res = run_one_fit(dataf, reff, treename)
+        fit_res = run_one_fit(dataf, reff, treename, n_bins)
         results.append(fit_res)
 
     return results
@@ -118,10 +118,12 @@ if __name__ == '__main__':
     parser.add_argument('gendir', help='directory containing the generated events')
     parser.add_argument('-t', '--treename', default='genData',
                         help='treename')
+    parser.add_argument('-n', '--nbins', default=32, type=int,
+                        help='number of bins to use in costh')
 
     args = parser.parse_args()
 
-    results = run_all_gens(args.gendir, args.treename)
+    results = run_all_gens(args.gendir, args.treename, args.nbins)
     df = analyze_fit_results(results)
 
-    df.to_pickle('toymc_contour_results.pkl')
+    df.to_pickle('toymc_contour_results_' + str(args.nbins) + '.pkl')

@@ -16,7 +16,7 @@ import ROOT as r
 _open_files = []
 
 
-def create_histo(filename, weight, treename='genData', name=''):
+def create_histo(filename, weight, treename='genData', name='', n_bins=32):
     """
     Create the costh_PX histogram from the datafile using the passed treename
     """
@@ -31,7 +31,7 @@ def create_histo(filename, weight, treename='genData', name=''):
     if not name:
         name = createRandomString(16)
 
-    hist = r.TH1D(name, ';cos#theta', 32, -1, 1)
+    hist = r.TH1D(name, ';cos#theta', n_bins, -1, 1)
     drawVarToHist(tree, hist, 'costh_PX', '', weight)
 
     setHistOpts(hist)
@@ -39,16 +39,20 @@ def create_histo(filename, weight, treename='genData', name=''):
     return hist
 
 
-def get_histos(datan, refn, treen):
+def get_histos(datan, refn, treen, n_bins=32):
     """
     Get the costh_PX histogram from the reference and the data file
     """
     if treen == 'chic_tuple':
-        datahist = create_histo(datan, weight='wChic2', name='h_costh_PX_chic2', treename=treen)
-        refhist = create_histo(refn, weight='wChic1', name='h_costh_PX_chic1', treename=treen)
+        datahist = create_histo(datan, weight='wChic2', name='h_costh_PX_chic2',
+                                treename=treen, n_bins=n_bins)
+        refhist = create_histo(refn, weight='wChic1', name='h_costh_PX_chic1',
+                               treename=treen, n_bins=n_bins)
     else:
-        datahist = create_histo(datan, weight='wS', name='h_costh_PX_chic2', treename=treen)
-        refhist = create_histo(refn, weight='wS', name='h_costh_PX_chic1', treename=treen)
+        datahist = create_histo(datan, weight='wS', name='h_costh_PX_chic2',
+                                treename=treen, n_bins=n_bins)
+        refhist = create_histo(refn, weight='wS', name='h_costh_PX_chic1',
+                               treename=treen, n_bins=n_bins)
 
     return (datahist, refhist)
 
@@ -151,14 +155,14 @@ def extract_par_from_result(fit_rlt):
 
 
 def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True,
-        fix_norm=False):
+        fix_norm=False, n_bins=32):
     """
     Run the fit for a given data and reference file, store the histograms
     and fit results into a root file and the results in a json file that can be
     read by the analyzer script
     """
     # get the histograms and set negtaive bins to zero
-    datah, refh = get_histos(datafn, reffn, treen)
+    datah, refh = get_histos(datafn, reffn, treen, n_bins)
 
     if save:
         outfile = r.TFile(outfn, 'recreate')

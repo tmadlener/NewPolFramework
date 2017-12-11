@@ -12,11 +12,11 @@ from utils.plotHelpers import mkplot
 from utils.TGraph_utils import createGraphSym
 # import json
 
-def run_scan(datafn, reffn, treen,ref_range=[-0.3, 1], n_points=250):
+def run_scan(datafn, reffn, treen,ref_range=[-0.3, 1], n_points=250, n_bins=32):
     """
     Run a scan using n_points in ref_range
     """
-    datah, refh = get_histos(datafn, reffn, treen)
+    datah, refh = get_histos(datafn, reffn, treen, n_bins=n_bins)
 
     ref_scan_points = np.linspace(ref_range[0], ref_range[1], n_points)
     fit_results = []
