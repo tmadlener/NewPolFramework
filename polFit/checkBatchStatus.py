@@ -3,7 +3,7 @@
 import argparse
 import os
 from utils.batch_utils import check_batch_file
-
+import sys
 
 def get_batch_info_files(basedir, jsonname):
     """
@@ -42,6 +42,9 @@ if __name__ == '__main__':
             failure_dirs.append(os.path.dirname(bf))
             print('Not all jobs completed successfully')
 
-    print('The following directories had jobs that were not succesfully completed:')
-    for fdir in failure_dirs:
-        print(fdir)
+    if failure_dirs:
+        print('The following directories had jobs that were not succesfully completed:')
+        for fdir in failure_dirs:
+            print(fdir)
+
+        sys.exit(1)
