@@ -18,6 +18,7 @@ function cleanup_and_exit() {
 }
 
 echo "-------------------- start: " $(date) " --------------------"
+set -x
 ## input arguments
 outFileBase=${1}
 lthsig=${2}
