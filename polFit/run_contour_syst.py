@@ -29,6 +29,16 @@ def run_one_fit(datafn, reffn, treen, n_bins):
     return ratio_fit.get_results(error_levels)
 
 
+def get_gen_idx(filename):
+    """Get the generation index from the file"""
+    import re
+    rgx = r'_gen_([0-9]+).root'
+    match = re.search(rgx, filename)
+    if match:
+        return int(match.group(1))
+
+    return -1
+
 
 def run_all_gens(gendir, treename, n_bins):
     """Run all combinations of data and ref files"""
@@ -38,12 +48,16 @@ def run_all_gens(gendir, treename, n_bins):
     results = []
 
     for dataf, reff, _ in data_ref_combis:
-        fit_res = run_one_fit(dataf, reff, treename, n_bins)
+        fit_res = {}
+        fit_res['results'] = run_one_fit(dataf, reff, treename, n_bins)
+        fit_res['datagen'] = get_gen_idx(dataf)
+        fit_res['refgen'] = get_gen_idx(reff)
         results.append(fit_res)
 
     return results
 
-def analyze_one_result(results):
+
+def analyze_one_result(results_dict):
     """Analyze one fit result"""
     def fill_nan(res_d, keys):
         for k in keys:
@@ -52,7 +66,12 @@ def analyze_one_result(results):
 
     # print(results)
     res_d = {}
-    if results is None:
+    res_d['datagen'] = results_dict['datagen']
+    res_d['refgen'] = results_dict['refgen']
+
+    results = results_dict['results']
+
+    if len(results) is None: # only the two generations are in here
         fill_nan(res_d, ['lth', 'lth_err1D', 'lth_err2D', 'lth_errup1D',
                          'lth_errlow1D', 'lth_errup2D', 'lth_errlow2D',
                          'dlam', 'dlam_err1D', 'dlam_err2D', 'dlam_errup1D',
