@@ -12,7 +12,7 @@ from scipy.spatial import ConvexHull
 from utils.ratio_fitting import CosthRatioFit
 from utils.plotHelpers import setColor
 
-from run_ratio_histo_fit import get_histos, divide, run
+from run_ratio_histo_fit import get_histos, divide, run, set_neg_bins_to_zero
 from runLamRefScan import run_scan
 
 # define error levels for contours
@@ -290,6 +290,12 @@ def main(datafn, reffn, outbase, treen, n_bins):
                      -1, 1)
 
     datah, refh = get_histos(datafn, reffn, treen, n_bins)
+    # for (i,b) in enumerate(datah):
+    #     print('{}, data = {}, ref = {}'.format(i, b, refh.GetBinContent(i))
+
+    set_neg_bins_to_zero(datah, True)
+    set_neg_bins_to_zero(refh, True)
+
     ratioh = divide(datah, refh)
     ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, mean_norm)])
 
