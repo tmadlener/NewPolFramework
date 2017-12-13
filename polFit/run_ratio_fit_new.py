@@ -360,7 +360,8 @@ def write_result_file(filename, fit_results):
     contour_file.Close()
 
 
-def main(datafn, reffn, outbase, treen, n_bins, bin_thresh=0, scan_plot=True):
+def main(datafn, reffn, outbase, treen, n_bins, bin_thresh=0, scan_plot=True,
+         use_center=False):
     # first run a scan to check how stable the normalization is
     # mean_norm = calc_mean_norm(datafn, reffn, treen, n_bins)
     mean_norm = get_free_norm(datafn, reffn, treen, n_bins)
@@ -377,7 +378,8 @@ def main(datafn, reffn, outbase, treen, n_bins, bin_thresh=0, scan_plot=True):
     set_bins_to_zero(refh, bin_thresh, True)
 
     ratioh = divide(datah, refh)
-    ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, mean_norm)])
+    ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, mean_norm)],
+                              use_center=use_center)
     fit_results = ratio_fit.get_results(error_levels)
 
     plotbase = '_'.join([outbase, str(n_bins)])
@@ -414,11 +416,13 @@ if __name__ == '__main__':
                         help='minimum number of events that have to be in each bin of the'
                         ' data and reference histograms. Bins below this threshold will be'
                         ' set to zero')
-
+    parser.add_argument('-c', '--usecenter', default=False, action='store_true',
+                        help='Evaluate the fit function at the bin center instead of '
+                        'integrating it over the whole bin in the fit.')
 
     args = parser.parse_args()
 
     r.gROOT.SetBatch()
     main(args.data_file_name, args.ref_file_name, args.output_base,
          args.treename, args.nbins, bin_thresh=args.binthresh,
-         scan_plot=not args.noscan)
+         scan_plot=not args.noscan, use_center=args.usecenter)
