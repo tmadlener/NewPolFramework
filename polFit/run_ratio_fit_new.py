@@ -4,6 +4,7 @@ import argparse
 
 import pandas as pd
 import ROOT as r
+r.PyConfig.IgnoreCommandLineOptions = True
 import numpy as np
 
 from scipy.stats import chi2
