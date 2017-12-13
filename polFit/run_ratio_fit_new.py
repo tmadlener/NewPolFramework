@@ -107,7 +107,15 @@ def get_best_fit(fit_rlt):
     p1_best = np.array([fit_rlt['params'][1]])
     p2_best = np.array([fit_rlt['params'][2]])
 
-    return r.TGraph(1, p1_best, p2_best)
+    p1_err_low = -np.array([fit_rlt['low_errors'][1]])
+    p2_err_low = -np.array([fit_rlt['low_errors'][2]])
+
+    p1_err_up = np.array([fit_rlt['up_errors'][1]])
+    p2_err_up = np.array([fit_rlt['up_errors'][2]])
+
+    # return r.TGraph(1, p1_best, p2_best)
+    return r.TGraphAsymmErrors(1, p1_best, p2_best, p1_err_low, p1_err_up,
+                               p2_err_low, p2_err_up)
 
 
 def add_clone_to_leg(leg, elem, label, opt):
@@ -239,7 +247,7 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
 
     best_fit.SetMarkerStyle(22)
     best_fit.SetMarkerColor(0)
-    best_fit.Draw('sameP')
+    best_fit.Draw('samePX') # 'X' for not drawing error bars
     add_clone_to_leg(leg, best_fit, 'best fit', 'P')
 
     leg.Draw()
@@ -330,6 +338,27 @@ def make_fit_plot(ratioh, fit_res, fit_func, outbase):
     can.SaveAs(plot_name + '.pdf')
 
 
+def write_result_file(filename, fit_results):
+    """Write the contour and the central results to a root file"""
+    contour_file = r.TFile(filename, 'recreate')
+    for result in fit_results:
+        graph = result['contour']
+        fit_graph = get_best_fit(result)
+        if graph is not None:
+            name = '_'.join(['contour', 'graph', 'errlevel', '{:.2f}'.format(result['err_level'])])
+            fit_name = name.replace('contour', 'fit')
+            if result['ndf'] == -1: # scan fit results get the ndf set to -1
+                name += '_scan'
+                fit_name += '_scan'
+
+            graph.SetName(name)
+            graph.Write()
+
+            fit_graph.SetName(fit_name)
+            fit_graph.Write()
+
+    contour_file.Close()
+
 
 def main(datafn, reffn, outbase, treen, n_bins, bin_thresh=0, scan_plot=True):
     # first run a scan to check how stable the normalization is
@@ -364,6 +393,8 @@ def main(datafn, reffn, outbase, treen, n_bins, bin_thresh=0, scan_plot=True):
     for result in fit_results:
         print_result(result)
 
+    cfile_name = '_'.join([plotbase, 'contours']) + '.root'
+    write_result_file(cfile_name, fit_results)
 
 
 if __name__ == '__main__':
