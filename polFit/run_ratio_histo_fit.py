@@ -57,15 +57,15 @@ def get_histos(datan, refn, treen, n_bins=32):
     return (datahist, refhist)
 
 
-def set_neg_bins_to_zero(h, verbose=False):
+def set_bins_to_zero(h, thresh=0, verbose=False):
     """Set negative bins of passed histo to zero"""
-    neg_bins = [(i, b) for i, b in enumerate(h) if b < 0]
+    neg_bins = [(i, b) for i, b in enumerate(h) if b < thresh]
     for nb, cont in neg_bins:
         h.SetBinContent(nb, 0)
         h.SetBinError(nb, 0)
 
     if verbose:
-        print('checked {} for negative bins'.format(h.GetName()))
+        print('checked {} for bins with entries below {}'.format(h.GetName(), thresh))
         for nb, cont in neg_bins:
             print('Set bin {} to 0, content was {}'.format(nb, cont))
 
@@ -155,7 +155,7 @@ def extract_par_from_result(fit_rlt):
 
 
 def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True,
-        fix_norm=False, n_bins=32):
+        fix_norm=False, n_bins=32, bin_thresh=0):
     """
     Run the fit for a given data and reference file, store the histograms
     and fit results into a root file and the results in a json file that can be
@@ -171,8 +171,8 @@ def run(datafn, reffn, outfn, treen, chic1_limits, fix_ref, fit_range, save=True
         datah.Write('_'.join([datah.GetName(), 'raw']))
         refh.Write('_'.join([refh.GetName(), 'raw']))
 
-    set_neg_bins_to_zero(datah, True)
-    set_neg_bins_to_zero(refh, True)
+    set_bins_to_zero(datah, bin_thresh, True)
+    set_bins_to_zero(refh, bin_thresh, True)
 
     if save:
         datah.Write()

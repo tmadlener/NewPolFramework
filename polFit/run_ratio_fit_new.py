@@ -12,7 +12,7 @@ from scipy.spatial import ConvexHull
 from utils.ratio_fitting import CosthRatioFit
 from utils.plotHelpers import setColor
 
-from run_ratio_histo_fit import get_histos, divide, run, set_neg_bins_to_zero
+from run_ratio_histo_fit import get_histos, divide, run, set_bins_to_zero
 from runLamRefScan import run_scan
 
 # define error levels for contours
@@ -330,7 +330,7 @@ def make_fit_plot(ratioh, fit_res, fit_func, outbase):
 
 
 
-def main(datafn, reffn, outbase, treen, n_bins, scan_plot=True):
+def main(datafn, reffn, outbase, treen, n_bins, bin_thresh=0, scan_plot=True):
     # first run a scan to check how stable the normalization is
     # mean_norm = calc_mean_norm(datafn, reffn, treen, n_bins)
     mean_norm = get_free_norm(datafn, reffn, treen, n_bins)
@@ -343,8 +343,8 @@ def main(datafn, reffn, outbase, treen, n_bins, scan_plot=True):
     # for (i,b) in enumerate(datah):
     #     print('{}, data = {}, ref = {}'.format(i, b, refh.GetBinContent(i))
 
-    set_neg_bins_to_zero(datah, True)
-    set_neg_bins_to_zero(refh, True)
+    set_bins_to_zero(datah, bin_thresh, True)
+    set_bins_to_zero(refh, bin_thresh, True)
 
     ratioh = divide(datah, refh)
     ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, mean_norm)])
@@ -378,9 +378,15 @@ if __name__ == '__main__':
                         help='number of bins to use in costh')
     parser.add_argument('-ns', '--noscan', default=False, action='store_true',
                         help='do not produce scan plot')
+    parser.add_argument('-bt', '--binthresh', default=0, type=float,
+                        help='minimum number of events that have to be in each bin of the'
+                        ' data and reference histograms. Bins below this threshold will be'
+                        ' set to zero')
+
 
     args = parser.parse_args()
 
     r.gROOT.SetBatch()
     main(args.data_file_name, args.ref_file_name, args.output_base,
-         args.treename, args.nbins, scan_plot=not args.noscan)
+         args.treename, args.nbins, bin_thresh=args.binthresh,
+         scan_plot=not args.noscan)
