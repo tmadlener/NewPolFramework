@@ -280,7 +280,57 @@ def print_result(fit_result):
                                                                     -fit_result['low_errors'][2]))
 
 
-def main(datafn, reffn, outbase, treen, n_bins):
+
+def make_fit_plot(ratioh, fit_res, fit_func, outbase):
+    """Make a plot showing the ratio and the fit result"""
+    from utils.TH_utils import calc_pulls
+    from utils.plotHelpers import _defaultColors, mkplot, plotOnCanvas
+
+    colors = _defaultColors()
+
+    fit_func.SetParameters(*fit_res['params'])
+
+    can = r.TCanvas('fit_plot_canvas', '', 800, 800)
+    can.cd()
+    hpad = r.TPad('hpad', 'hpad', 0, 0.25, 1, 1)
+    r.SetOwnership(hpad, False)
+    hpad.Draw()
+    hpad.SetGrid()
+
+    ratioh.GetYaxis().SetRangeUser(0, 1)
+    ratioh.SetYTitle('N_{#chi_{c2}} / N_{#chi_{c1}}')
+    plotOnCanvas(hpad, [ratioh, fit_func], drawOpt='E1')
+
+    can.cd()
+    ppad = r.TPad('ppad', 'ppad', 0, 0, 1, 0.25)
+    r.SetOwnership(ppad, False)
+    ppad.Draw()
+
+    ppad.cd()
+    ppad.SetGrid()
+    plothist = ppad.DrawFrame(-1, -5, 1, 5)
+    # plothist.SetXTitle('cos#theta')
+    plothist.SetYTitle('(fit - data)/#sigma_{data}')
+    plothist.GetYaxis().SetLabelSize(ratioh.GetYaxis().GetLabelSize() * 0.75 / 0.25)
+    plothist.GetYaxis().SetNdivisions(205)
+    plothist.GetYaxis().SetTitleSize(ratioh.GetYaxis().GetTitleSize() * 0.75 / 0.25)
+    plothist.GetYaxis().SetTitleOffset(0.4)
+
+    plothist.GetXaxis().SetLabelSize(ratioh.GetXaxis().GetLabelSize() * 0.75 / 0.25)
+
+    pulls = calc_pulls(ratioh, fit_func)
+    pulls.SetMarkerStyle(2)
+    pulls.SetMarkerSize(1)
+
+    plotOnCanvas(ppad, [pulls], drawOpt='PE')
+
+    can.Draw()
+    plot_name = '_'.join([outbase, 'fit'])
+    can.SaveAs(plot_name + '.pdf')
+
+
+
+def main(datafn, reffn, outbase, treen, n_bins, scan_plot=True):
     # first run a scan to check how stable the normalization is
     # mean_norm = calc_mean_norm(datafn, reffn, treen, n_bins)
     mean_norm = get_free_norm(datafn, reffn, treen, n_bins)
@@ -298,17 +348,19 @@ def main(datafn, reffn, outbase, treen, n_bins):
 
     ratioh = divide(datah, refh)
     ratio_fit = CosthRatioFit(ratioh, fit_func, fix_params=[(0, mean_norm)])
-
-
     fit_results = ratio_fit.get_results(error_levels)
 
-    x_ran, y_ran = get_plotting_range(fit_results[-1])
+    plotbase = '_'.join([outbase, str(n_bins)])
+    make_fit_plot(ratioh, fit_results[0], fit_func, plotbase)
 
-    scan_fit_result = make_paed_plot(ratioh, fit_func, error_levels, fit_results,
-                                     '.'.join([outbase, 'pdf']),
-                                     n_grid=250, x_ran=x_ran, y_ran=y_ran)
+    if scan_plot:
+        x_ran, y_ran = get_plotting_range(fit_results[-1])
+        scan_fit_result = make_paed_plot(ratioh, fit_func, error_levels, fit_results,
+                                         '.'.join([plotbase, 'pdf']),
+                                         n_grid=250, x_ran=x_ran, y_ran=y_ran)
+        fit_results += scan_fit_result
 
-    for result in fit_results + scan_fit_result:
+    for result in fit_results:
         print_result(result)
 
 
@@ -324,9 +376,11 @@ if __name__ == '__main__':
                         help='name of tree in input files')
     parser.add_argument('-n', '--nbins', default=32, type=int,
                         help='number of bins to use in costh')
-
+    parser.add_argument('-ns', '--noscan', default=False, action='store_true',
+                        help='do not produce scan plot')
 
     args = parser.parse_args()
 
+    r.gROOT.SetBatch()
     main(args.data_file_name, args.ref_file_name, args.output_base,
-         args.treename, args.nbins)
+         args.treename, args.nbins, scan_plot=not args.noscan)
