@@ -2,6 +2,9 @@
 
 import argparse
 import sys
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(levelname)s - %(funcName)s: %(message)s')
 
 import pandas as pd
 import ROOT as r
@@ -13,7 +16,6 @@ from scipy.spatial import ConvexHull
 
 from utils.ratio_fitting import CosthRatioFit
 from utils.plotHelpers import setColor
-from utils.logging_helper import setup_logger
 
 from run_ratio_histo_fit import get_histos, divide, run, set_bins_to_zero
 from runLamRefScan import run_scan
@@ -161,19 +163,19 @@ def scan_param_space(ratioh, func, par_settings):
         pandas.DataFrame: DataFrame containing a chi2 value for each
         possible combination of input parameters
     """
-    logger.info('Scanning parameters space, start.')
+    logging.info('Scanning parameters space, start.')
     def parse_param_setting(par_settings, key):
         """Get the scan points for one parameter"""
         import numbers
         try:
             par_set = par_settings[key]
             if isinstance(par_set, numbers.Number):
-                logger.debug('Fixing paramter {} to {}'.format(key, par_set))
+                logging.debug('Fixing paramter {} to {}'.format(key, par_set))
                 return np.array([par_set], dtype='d')
             if len(par_set) == 2:
                 par_set.append(100)
             if len(par_set) == 3:
-                logger.debug('Scaning parameter {} between {} and {} '
+                logging.debug('Scaning parameter {} between {} and {} '
                              'using {} values'.format(key, par_set[0],
                                                       par_set[1], par_set[2]))
                 return get_bin_centers(par_set[0], par_set[1], par_set[2])
@@ -220,7 +222,7 @@ def fix_non_free_params(scan_results, x_param, y_param):
     # in our case.
     min_chi2_idx = np.argmin(scan_results.chi2.values)
     min_chi2 = scan_results.iloc[min_chi2_idx]['chi2']
-    logger.debug('Found min chi2 = {} at position {}'.format(min_chi2, min_chi2_idx))
+    logging.debug('Found min chi2 = {} at position {}'.format(min_chi2, min_chi2_idx))
 
     all_vars = scan_results.columns.values
     # select only those parameters that are fixed in the plot
@@ -229,7 +231,7 @@ def fix_non_free_params(scan_results, x_param, y_param):
                              (all_vars != y_param)]
 
     fixed_vals = scan_results.iloc[min_chi2_idx][fixed_plot_vars]
-    logger.debug('Free variables: {}, {}. Fixed variables {}, values: {}.'.
+    logging.debug('Free variables: {}, {}. Fixed variables {}, values: {}.'.
                  format(x_param, y_param, fixed_vals.index, fixed_vals.values))
 
     # iteratively create the free indices of the data frame
@@ -237,7 +239,7 @@ def fix_non_free_params(scan_results, x_param, y_param):
     for var in fixed_vals.index:
         free = free & (scan_results[var] == fixed_vals[var])
 
-    logger.debug('Number of rows in the DataFrame before/after fixing: {}/{}'
+    logging.debug('Number of rows in the DataFrame before/after fixing: {}/{}'
                  .format(len(free), np.sum(free)))
 
     return scan_results[free]
@@ -263,7 +265,7 @@ def get_binning(vals):
 
     # calculate half the bin width assuming uniform bins
     hbin_width = 0.5 * (v_max - v_min) / (n_bins - 1)
-    logger.debug('n_bins = {}, v_min = {}, v_max = {}, hbin_width = {}'
+    logging.debug('n_bins = {}, v_min = {}, v_max = {}, hbin_width = {}'
                  .format(n_bins, v_min, v_max, hbin_width))
 
     return (n_bins, v_min - hbin_width, v_max + hbin_width)
@@ -277,7 +279,7 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, fit_rlts, plotnam
 
     x_axis = get_binning(plot_vals[x_param])
     y_axis = get_binning(plot_vals[y_param])
-    logger.debug('Creating histogram. x_axis = {}, y_axis = {}'.format(x_axis, y_axis))
+    logging.debug('Creating histogram. x_axis = {}, y_axis = {}'.format(x_axis, y_axis))
     plotHist = r.TH2D('h', ';#lambda_{ref};#Delta_{#lambda};#chi^{2} - #chi^{2}_{min}',
                        x_axis[0], x_axis[1], x_axis[2], y_axis[0], y_axis[1], y_axis[2])
     plotHist.SetStats(0)
@@ -289,7 +291,7 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, fit_rlts, plotnam
     min_chi2 = fit_rlts[0]['chi2']
     best_fit = get_best_fit(fit_rlts[0])
 
-    logger.debug('min_chic2 (fit) = {:.4f}, min_chic2 (scan) = {:.4f}'
+    logging.debug('min_chic2 (fit) = {:.4f}, min_chic2 (scan) = {:.4f}'
                  .format(min_chi2, plot_vals.chi2.min()))
     min_chi2 = min([min_chi2, plot_vals.chi2.min()])
 
@@ -543,8 +545,6 @@ if __name__ == '__main__':
                         'integrating it over the whole bin in the fit.')
 
     args = parser.parse_args()
-
-    logger = setup_logger(level='DEBUG')
 
     r.gROOT.SetBatch()
     main(args.data_file_name, args.ref_file_name, args.output_base,

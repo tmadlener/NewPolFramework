@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 import numpy as np
 
@@ -70,10 +72,10 @@ def scan_chi2_params(hist, fit_func, scan_params, par_names):
     n_params, n_names = len(scan_params), len(par_names)
     if n_params != n_names:
         if n_params < n_names:
-            logger.warning('Got {} scan_params but {} par_names. Will ignore '
+            logging.warning('Got {} scan_params but {} par_names. Will ignore '
                            'the superfluous par_names'.format(n_params, n_names))
         else:
-            logger.error('Got {} scan_params but only {} par_names. Need the '
+            logging.error('Got {} scan_params but only {} par_names. Need the '
                          'same number!'.format(n_params, n_names))
 
     results = []

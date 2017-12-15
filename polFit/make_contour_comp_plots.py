@@ -2,12 +2,15 @@
 
 import sys
 
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(levelname)s - %(funcName)s: %(message)s')
+
 import ROOT as r
 r.PyConfig.IgnoreCommandLineOptions = True
 
 from utils.recurse import collectGraphs
 from utils.plotHelpers import mkplot,  _defaultColors
-from utils.logging_helper import setup_logger
 
 # global array of rootfiles, to avoid getting them closed on going out of scope
 _open_files = []
@@ -17,13 +20,13 @@ def collect_graphs(inputfiles):
     graphs = {}
     global _open_files
     for inf in inputfiles:
-        logger.debug('Opening file {}'.format(inf))
+        logging.debug('Opening file {}'.format(inf))
         f = r.TFile.Open(inf)
         _open_files.append(f)
 
         graphs[inf] = collectGraphs(f)
 
-        logger.debug('Collected {} graphs'.format(len(graphs[inf])))
+        logging.debug('Collected {} graphs'.format(len(graphs[inf])))
 
     return graphs
 
@@ -34,10 +37,10 @@ def parse_file_name(filename):
     rgx = r'bin_thresh_([0-9]+).*n_bins_([0-9]+)'
     m = re.search(rgx, filename)
     if m:
-        logger.debug('Matching \'{}\' to \'{}\' worked: {}'.format(rgx, filename, m.groups()))
+        logging.debug('Matching \'{}\' to \'{}\' worked: {}'.format(rgx, filename, m.groups()))
         return [int(m.group(i)) for i in [1,2]]
 
-    logger.warning('Could not match \'{}\' to \'{}\''.format(rgx, filename))
+    logging.warning('Could not match \'{}\' to \'{}\''.format(rgx, filename))
     return -1,-1
 
 
@@ -45,26 +48,26 @@ def select_graphs(graphs, sel_str):
     """From the graphs of all files select the ones matching"""
     from utils.miscHelpers import filterDict
 
-    logger.debug('Selecting graphs matching \'{}\''.format(sel_str))
+    logging.debug('Selecting graphs matching \'{}\''.format(sel_str))
     sel_graphs = {}
     for inf in graphs:
         sel_cands = filterDict(graphs[inf], sel_str).values()
-        logger.debug('Found {} matching graphs in \'{}\''.format(len(sel_cands), inf))
+        logging.debug('Found {} matching graphs in \'{}\''.format(len(sel_cands), inf))
         if len(sel_cands) == 0:
-            logger.warning('Could not get graphs matching \'{}\' '
+            logging.warning('Could not get graphs matching \'{}\' '
                            'from file {}'.format(sel_str, inf))
             continue
         if len(sel_cands) > 1:
             # sort by length, since '_scan' is appended to the files
             sel_cands.sort(key=lambda x: len(x.GetName()))
-            logger.info('Found {} graphs matching \'{}\' '
+            logging.info('Found {} graphs matching \'{}\' '
                         'in file {}, selecting {}'.format(len(sel_cands), sel_str,
                                                           inf, sel_cands[0]))
-            logger.debug('Other candidates were {}'.format(sel_cands[1:]))
+            logging.debug('Other candidates were {}'.format(sel_cands[1:]))
 
         sel_graphs[inf] = sel_cands[0]
 
-    logger.debug('Selected {} graphs for {} files'.format(len(sel_graphs), len(graphs)))
+    logging.debug('Selected {} graphs for {} files'.format(len(sel_graphs), len(graphs)))
     return sel_graphs
 
 
@@ -74,11 +77,11 @@ def sort_graphs(graphs):
     # are orderable
     from operator import itemgetter
 
-    logger.debug('Sorting graphs. Creating sorting list of tuple')
+    logging.debug('Sorting graphs. Creating sorting list of tuple')
     gtuples = zip((parse_file_name(k) for k in graphs.keys()), graphs.values())
 
     gtuples.sort(key=itemgetter(0,1))
-    logger.debug('Done sorting graphs')
+    logging.debug('Done sorting graphs')
 
     return (g[0] for g in gtuples), (g[1] for g in gtuples)
 
@@ -113,9 +116,9 @@ def set_line_styles(graphs):
 
 def plot_graphs(graphs, sel_str, plotname, contour, ranges):
     """Plot all graphs matching the sel_str"""
-    logger.debug('Creating plot for sel_str = \'{}\''.format(sel_str))
+    logging.debug('Creating plot for sel_str = \'{}\''.format(sel_str))
     sel_graphs = select_graphs(graphs, sel_str)
-    logger.debug('Got {} graphs'.format(len(sel_graphs)))
+    logging.debug('Got {} graphs'.format(len(sel_graphs)))
 
     binnings, graphs = sort_graphs(sel_graphs)
     graphs = list(graphs) # need a list in any case
@@ -139,13 +142,13 @@ def plot_graphs(graphs, sel_str, plotname, contour, ranges):
 def main(inputfiles, contour, errorbars, outbase, errlevel, axis_ran_str=''):
     """Main"""
     # collect all graphs and then handle them according to args
-    logger.info('Collecting graphs from {} files'.format(len(inputfiles)))
+    logging.info('Collecting graphs from {} files'.format(len(inputfiles)))
     all_graphs = collect_graphs(inputfiles)
 
     err_rgx = r'errlevel_' + errlevel.replace('.', '\.')
 
     if axis_ran_str:
-        logger.debug('Getting axis ranges from {}'.format(axis_ran_str))
+        logging.debug('Getting axis ranges from {}'.format(axis_ran_str))
         ranges = [float(v) for v in axis_ran_str.split(',')]
         if len(ranges) < 4:
             print('Could not get 4 values from {}'.format(axis_ran_str))
@@ -154,7 +157,7 @@ def main(inputfiles, contour, errorbars, outbase, errlevel, axis_ran_str=''):
         axis_ranges = []
         axis_ranges.append([ranges[0], ranges[1]])
         axis_ranges.append([ranges[2], ranges[3]])
-        logger.debug('Axis ranges are: {} and {}'.format(axis_ranges[0],
+        logging.debug('Axis ranges are: {} and {}'.format(axis_ranges[0],
                                                          axis_ranges[1]))
 
     else:
@@ -162,12 +165,12 @@ def main(inputfiles, contour, errorbars, outbase, errlevel, axis_ran_str=''):
 
     if contour:
         plotname = outbase + '_contour.pdf'
-        logger.info('Making contour plot \'{}\''.format(plotname))
+        logging.info('Making contour plot \'{}\''.format(plotname))
         plot_graphs(all_graphs, r'contour.*' + err_rgx, plotname, True, axis_ranges)
 
     if errorbars:
         plotname = outbase +'_central.pdf'
-        logger.info('Making central results plot \'{}\''.format(plotname))
+        logging.info('Making central results plot \'{}\''.format(plotname))
         plot_graphs(all_graphs, r'fit.*' + err_rgx, plotname, False, axis_ranges)
 
 
@@ -194,8 +197,6 @@ if __name__ == '__main__':
     parser.add_argument('-z', '--zoom', help='zoom into desired region', default='')
 
     args = parser.parse_args()
-
-    logger = setup_logger(level=args.loglevel)
 
     r.gROOT.SetBatch()
     r.gROOT.ProcessLine('gErrorIgnoreLevel = 1001')
