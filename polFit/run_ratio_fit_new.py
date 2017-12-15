@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import sys
 
 import pandas as pd
 import ROOT as r
@@ -12,9 +13,12 @@ from scipy.spatial import ConvexHull
 
 from utils.ratio_fitting import CosthRatioFit
 from utils.plotHelpers import setColor
+from utils.logging_helper import setup_logger
 
 from run_ratio_histo_fit import get_histos, divide, run, set_bins_to_zero
 from runLamRefScan import run_scan
+
+from helpers import scan_chi2_params, get_bin_centers
 
 # define error levels for contours
 # 1 - corresponds to 68 % confidence intervals on single variable
@@ -31,20 +35,6 @@ _legend_clones = []
 
 # clones of scan graphs
 _scan_graphs = []
-
-def flat_list_tuple(tup_list):
-    """
-    From a list of tuples containing two elements, return a list of
-    tuples, where the first elements is the tuple containing all first
-    elemnts of the input list and the second contains one of all
-    possible combinations of the items in the second elements of the
-    tuple.
-    """
-    from itertools import product
-    fix_funcs, fix_vals = zip(*tup_list) # split apart the fix_funcs and the values
-
-    val_comb_gen = product(*[vals.tolist() for vals in fix_vals])
-    return ((fix_funcs, val_comb) for val_comb in val_comb_gen)
 
 
 def calc_mean_norm(datafn, reffn, treen, n_bins):
@@ -79,28 +69,6 @@ def get_free_norm(datafn, reffn, treen, n_bins):
     print('FITERROR: Cannot determine normalization from free fit for inputs:\n'
           'datafile: {}\nreffile: {}'.format(datafn, reffn))
     return None
-
-
-def scan_chi2_params(hist, fit_func, scan_params):
-    results = []
-    par_names = {0: 'N', 1: 'lth_ref', 2: 'delta_lth'}
-
-    for fix_funcs, val_comb in flat_list_tuple(scan_params):
-        pars = {}
-        for (i, func) in enumerate(fix_funcs):
-            func(fit_func, val_comb[i])
-            pars[par_names[i]] = val_comb[i]
-
-        pars['chi2'] = hist.Chisquare(fit_func)
-        results.append(pars)
-
-    return pd.DataFrame(results)
-
-
-def get_bin_centers(x_min, x_max, n_bins):
-    """Get the values for the evaluation of the parameters in the bin centers"""
-    bin_bounds = np.linspace(x_min, x_max, n_bins + 1)
-    return 0.5 * (bin_bounds[1:] + bin_bounds[:-1])
 
 
 def get_best_fit(fit_rlt):
@@ -169,6 +137,61 @@ def get_contour_scan(scan_results, min_chi2, err_level):
     return fit_res
 
 
+def scan_param_space(ratioh, func, par_settings):
+    """
+    Compute the chi2 values for all possible combinations in the
+    parameter space.
+    Note that this function is just a wrapper around scan_chi2_params,
+    to accomodate for the specifics of this fit.
+
+    Args:
+        ratioh (ROOT.TH1D): The ratio histogram to be fitted
+        func (ROOT.TF1): The funciton to be fitted to ratioh
+        param_settings (dict): The parameters settings to be
+            used. Must contain at least the keys 'N', 'lref', and
+            'dlam'. For each key, the scan range and number of points
+            is expected. If only one number is passed, the parameter
+            is assumed to be fixed to that number. If two numbers are
+            passed, this is assumed to be the range and a default of
+            100 scan points in this parameter is used. For three
+            numbers the first two are assumed to be the range and the
+            third is the number of scan points.
+
+    Returns:
+        pandas.DataFrame: DataFrame containing a chi2 value for each
+        possible combination of input parameters
+    """
+    def parse_param_setting(par_settings, key):
+        """Get the scan points for one parameter"""
+        import numbers
+        try:
+            par_set = par_settings[key]
+            if isinstance(par_set, numbers.Number):
+                return np.array([par_set], dtype='d')
+            if len(par_set) == 2:
+                return get_bin_centers(par_set[0], par_set[1], 100)
+            if len(par_set) == 3:
+                return get_bin_centers(par_set[0], par_set[1], par_set[2])
+            else: raise ValueError
+        except KeyError:
+            logging.error('{} not found in par_settings, but it is required '
+                          'required to be there'.format(key))
+        except ValueError:
+            logging.error('par_settings {}, corresponding to key {} '
+                          'could not be parsed'.format(par_set, key))
+
+        sys.exit(1)
+
+    par_scan_settings = (
+        (lambda f, x: f.FixParameter(0, x), parse_param_setting(par_settings, 'N')),
+        (lambda f, x: f.FixParameter(1, x), parse_param_setting(par_settings, 'lref')),
+        (lambda f, x: f.FixParameter(2, x), parse_param_setting(par_settings, 'dlam'))
+    )
+
+    par_names = {0: 'N', 1: 'lth_ref', 2: 'delta_lth'}
+    return scan_chi2_params(ratioh, func, par_scan_settings, par_names)
+
+
 def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
                    n_grid=100, x_ran=[-1, 1], y_ran=[-1, 1]):
     """Make a paedagoical plot"""
@@ -180,16 +203,17 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
     plotHist.SetTitleOffset(0.95, 'Z')
     plotHist.SetTitleOffset(1.4, 'Y')
 
-    par_scan_settings = (
-        (lambda f, x: f.FixParameter(0, x), np.array([fit_rlts[0]['params'][0]])),
-        (lambda f, x: f.FixParameter(1, x), get_bin_centers(x_ran[0], x_ran[1], n_grid)),
-        (lambda f, x: f.FixParameter(2, x), get_bin_centers(y_ran[0], y_ran[1], n_grid))
-    )
-
     min_chi2 = fit_rlts[0]['chi2']
     best_fit = get_best_fit(fit_rlts[0])
 
-    scan_results = scan_chi2_params(ratioh, func, par_scan_settings)
+    par_scan_settings = {
+        'N': fit_rlts[0]['params'][0],
+        'lref': (x_ran[0], x_ran[1], n_grid),
+        'dlam': (y_ran[0], y_ran[1], n_grid)
+    }
+
+    scan_results = scan_param_space(ratioh, func, par_scan_settings)
+
     # it is possible that the scanning actually finds a (slightly) better minimum
     # than the minimization from the fit. If that is the case use the new minimum chi2
     # value for the plot and also indicate the better result in the plot
@@ -422,6 +446,8 @@ if __name__ == '__main__':
                         'integrating it over the whole bin in the fit.')
 
     args = parser.parse_args()
+
+    logger = setup_logger(level='DEBUG')
 
     r.gROOT.SetBatch()
     main(args.data_file_name, args.ref_file_name, args.output_base,
