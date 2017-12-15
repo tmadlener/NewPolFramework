@@ -169,6 +169,9 @@ def scan_param_space(ratioh, func, par_settings):
         import numbers
         try:
             par_set = par_settings[key]
+            if isinstance(par_set, np.ndarray):
+                logging.debug('Parameter {} already in correct format'.format(key))
+                return par_set
             if isinstance(par_set, numbers.Number):
                 logging.debug('Fixing paramter {} to {}'.format(key, par_set))
                 return np.array([par_set], dtype='d')
