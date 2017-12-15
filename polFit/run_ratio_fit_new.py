@@ -34,10 +34,11 @@ _scan_graphs = []
 
 def flat_list_tuple(tup_list):
     """
-    From a list of tuples containing two elements, return a list of tuples,
-    where the first elements, where the first is the tuple containing all first elemnts
-    of the input list and the second contains one of all possible combinations
-    of the items in the second elements of the tuple.
+    From a list of tuples containing two elements, return a list of
+    tuples, where the first elements is the tuple containing all first
+    elemnts of the input list and the second contains one of all
+    possible combinations of the items in the second elements of the
+    tuple.
     """
     from itertools import product
     fix_funcs, fix_vals = zip(*tup_list) # split apart the fix_funcs and the values
