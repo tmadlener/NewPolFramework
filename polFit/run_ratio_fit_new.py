@@ -161,16 +161,21 @@ def scan_param_space(ratioh, func, par_settings):
         pandas.DataFrame: DataFrame containing a chi2 value for each
         possible combination of input parameters
     """
+    logger.info('Scanning parameters space, start.')
     def parse_param_setting(par_settings, key):
         """Get the scan points for one parameter"""
         import numbers
         try:
             par_set = par_settings[key]
             if isinstance(par_set, numbers.Number):
+                logger.debug('Fixing paramter {} to {}'.format(key, par_set))
                 return np.array([par_set], dtype='d')
             if len(par_set) == 2:
-                return get_bin_centers(par_set[0], par_set[1], 100)
+                par_set.append(100)
             if len(par_set) == 3:
+                logger.debug('Scaning parameter {} between {} and {} '
+                             'using {} values'.format(key, par_set[0],
+                                                      par_set[1], par_set[2]))
                 return get_bin_centers(par_set[0], par_set[1], par_set[2])
             else: raise ValueError
         except KeyError:
@@ -192,11 +197,89 @@ def scan_param_space(ratioh, func, par_settings):
     return scan_chi2_params(ratioh, func, par_scan_settings, par_names)
 
 
-def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
-                   n_grid=100, x_ran=[-1, 1], y_ran=[-1, 1]):
-    """Make a paedagoical plot"""
+def fix_non_free_params(scan_results, x_param, y_param):
+    """
+    Fix all paramters to their value at the minimum chi2 value except
+    for the two passed.
+
+    Args:
+        scan_results (pandas.DataFrame): DataFrame containing
+        parameter value combinations and an associated chi2 value.
+        x_param (str): parameter present in scan_results that should
+        be left free
+        y_param (str): parameter present in scan_results that should
+        be left free
+
+    Returns:
+        pandas.DataFrame: DataFrame (or view into original DataFrame)
+        with all but the two passed parameters fixed to their value
+        found at the minimum chi2
+    """
+    # use numpy.argmin here to find the position of the min chi2 value
+    # as using idxmin returns labels, which are most certainly not unique
+    # in our case.
+    min_chi2_idx = np.argmin(scan_results.chi2.values)
+    min_chi2 = scan_results.iloc[min_chi2_idx]['chi2']
+    logger.debug('Found min chi2 = {} at position {}'.format(min_chi2, min_chi2_idx))
+
+    all_vars = scan_results.columns.values
+    # select only those parameters that are fixed in the plot
+    fixed_plot_vars = all_vars[(all_vars != 'chi2') &
+                             (all_vars != x_param) &
+                             (all_vars != y_param)]
+
+    fixed_vals = scan_results.iloc[min_chi2_idx][fixed_plot_vars]
+    logger.debug('Free variables: {}, {}. Fixed variables {}, values: {}.'.
+                 format(x_param, y_param, fixed_vals.index, fixed_vals.values))
+
+    # iteratively create the free indices of the data frame
+    free = np.array(np.ones(scan_results.index.shape[0]), dtype=bool)
+    for var in fixed_vals.index:
+        free = free & (scan_results[var] == fixed_vals[var])
+
+    logger.debug('Number of rows in the DataFrame before/after fixing: {}/{}'
+                 .format(len(free), np.sum(free)))
+
+    return scan_results[free]
+
+
+def get_binning(vals):
+    """
+    Determine the binning to be used for the TH2D
+    colormap. Simply assume that the values are uniform and
+    count the unique elements as well as determine the min
+    and max (taking into account that the passed values are
+    bin centers)
+
+    Args:
+        vals (numpy.ndarray): All values (at the bin centers)
+    Returns:
+        (n_bins, min, max): tuple containing the number of
+        bins as well as the min and max values
+    """
+    n_bins = len(np.unique(vals))
+    v_min = np.min(vals)
+    v_max = np.max(vals)
+
+    # calculate half the bin width assuming uniform bins
+    hbin_width = 0.5 * (v_max - v_min) / (n_bins - 1)
+    logger.debug('n_bins = {}, v_min = {}, v_max = {}, hbin_width = {}'
+                 .format(n_bins, v_min, v_max, hbin_width))
+
+    return (n_bins, v_min - hbin_width, v_max + hbin_width)
+
+
+def create_scan_plot(scan_results, x_param, y_param, err_lvls, fit_rlts, plotname):
+    """
+    Main plotting routine, only concerned with creating the plot.
+    """
+    plot_vals = fix_non_free_params(scan_results, x_param, y_param)
+
+    x_axis = get_binning(plot_vals[x_param])
+    y_axis = get_binning(plot_vals[y_param])
+    logger.debug('Creating histogram. x_axis = {}, y_axis = {}'.format(x_axis, y_axis))
     plotHist = r.TH2D('h', ';#lambda_{ref};#Delta_{#lambda};#chi^{2} - #chi^{2}_{min}',
-                      n_grid, x_ran[0], x_ran[1], n_grid, y_ran[0], y_ran[1])
+                       x_axis[0], x_axis[1], x_axis[2], y_axis[0], y_axis[1], y_axis[2])
     plotHist.SetStats(0)
     plotHist.SetTitleSize(0.04, 'XYZ')
     plotHist.SetTitleOffset(0.9, 'X')
@@ -206,22 +289,11 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
     min_chi2 = fit_rlts[0]['chi2']
     best_fit = get_best_fit(fit_rlts[0])
 
-    par_scan_settings = {
-        'N': fit_rlts[0]['params'][0],
-        'lref': (x_ran[0], x_ran[1], n_grid),
-        'dlam': (y_ran[0], y_ran[1], n_grid)
-    }
+    logger.debug('min_chic2 (fit) = {:.4f}, min_chic2 (scan) = {:.4f}'
+                 .format(min_chi2, plot_vals.chi2.min()))
+    min_chi2 = min([min_chi2, plot_vals.chi2.min()])
 
-    scan_results = scan_param_space(ratioh, func, par_scan_settings)
-
-    # it is possible that the scanning actually finds a (slightly) better minimum
-    # than the minimization from the fit. If that is the case use the new minimum chi2
-    # value for the plot and also indicate the better result in the plot
-    scan_smaller_minimization = np.any(scan_results.chi2 < min_chi2)
-    if scan_smaller_minimization:
-        min_chi2 = scan_results.chi2.min()
-
-    for _,vals in scan_results.iterrows():
+    for _, vals in plot_vals.iterrows():
         if vals.chi2 - min_chi2 > 25:
             continue
         i_bin = plotHist.FindBin(vals.lth_ref, vals.delta_lth)
@@ -235,17 +307,42 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
 
     plotHist.GetZaxis().SetRangeUser(-0.01, 25.0)
 
+    return plotHist
+
+
+def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
+                   n_grid=100, x_ran=[-1, 1], y_ran=[-1, 1]):
+    """Make a paedagoical plot with the chi2 values and the contours"""
+    par_scan_settings = {
+        'N': fit_rlts[0]['params'][0],
+        'lref': (x_ran[0], x_ran[1], n_grid),
+        'dlam': (y_ran[0], y_ran[1], n_grid)
+    }
+    scan_results = scan_param_space(ratioh, func, par_scan_settings)
+
+    min_chi2 = fit_rlts[0]['chi2']
+    best_fit = get_best_fit(fit_rlts[0])
+
+    # it is possible that the scanning actually finds a (slightly) better minimum
+    # than the minimization from the fit. If that is the case use the new minimum chi2
+    # value for the plot and also indicate the better result in the plot
+    scan_smaller_minimization = np.any(scan_results.chi2 < min_chi2)
+
     c = r.TCanvas('c', 'c', 800, 800)
     pad = c.cd()
     c.SetGrid()
     pad.SetRightMargin(0.15)
     pad.SetLeftMargin(0.12)
 
+    plotHist = create_scan_plot(scan_results, 'lth_ref', 'delta_lth',
+                                err_lvls, fit_rlts, plotname)
+    plotHist.Draw('colz')
+
+
     leg = r.TLegend(0.12, 0.1, 0.25, 0.25)
 
     scan_fit_results = []
 
-    plotHist.Draw('colz')
     for i, rlts in enumerate(fit_rlts):
         scan_cont = False
         # catch cases of failing contour or new minimum in scanning
