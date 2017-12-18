@@ -120,7 +120,7 @@ def main(args):
         scan_res = scan_param_space(ratioh, fit_func, {'N': norm_values,
                                                        'lref': lref_values,
                                                        'dlam': dlam_values})
-        store_dataframe(scan_res, args.outfile)
+        store_dataframe(scan_res, args.outfile.replace('XXX', str(n_bins)))
 
 
 if __name__ == '__main__':
@@ -132,7 +132,8 @@ if __name__ == '__main__':
                                      'parseVarBinning')
     parser.add_argument('datafile', help='file containing the data tuple')
     parser.add_argument('reffile', help='file containing the reference tuple')
-    parser.add_argument('outfile', help='output file to store the created data frame in')
+    parser.add_argument('outfile', help='output file to store the created data frame in.'
+                        ' XXX will be replaced by the number of bins')
     parser.add_argument('-t', '--treename', default='chic_tuple',
                         help='name of the tree containting the tuple')
     parser.add_argument('-fn', '--fix-norm', default=False, action='store_true',
