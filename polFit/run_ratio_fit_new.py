@@ -298,7 +298,7 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2):
     for _, vals in plot_vals.iterrows():
         if vals.chi2 - min_chi2 > 25:
             continue
-        i_bin = plotHist.FindBin(vals.lth_ref, vals.delta_lth)
+        i_bin = plotHist.FindBin(vals[x_param], vals[y_param])
         plotHist.SetBinContent(i_bin, vals.chi2 - min_chi2)
 
     # not all bins get filled above. To have them appear white, change their
