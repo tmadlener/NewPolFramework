@@ -274,7 +274,7 @@ def get_binning(vals):
     return (n_bins, v_min - hbin_width, v_max + hbin_width)
 
 
-def create_scan_plot(scan_results, x_param, y_param, err_lvls, fit_rlts, plotname):
+def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2):
     """
     Main plotting routine, only concerned with creating the plot.
     """
@@ -290,9 +290,6 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, fit_rlts, plotnam
     plotHist.SetTitleOffset(0.9, 'X')
     plotHist.SetTitleOffset(0.95, 'Z')
     plotHist.SetTitleOffset(1.4, 'Y')
-
-    min_chi2 = fit_rlts[0]['chi2']
-    best_fit = get_best_fit(fit_rlts[0])
 
     logging.debug('min_chic2 (fit) = {:.4f}, min_chic2 (scan) = {:.4f}'
                  .format(min_chi2, plot_vals.chi2.min()))
@@ -340,7 +337,7 @@ def make_paed_plot(ratioh, func, err_lvls, fit_rlts, plotname,
     pad.SetLeftMargin(0.12)
 
     plotHist = create_scan_plot(scan_results, 'lth_ref', 'delta_lth',
-                                err_lvls, fit_rlts, plotname)
+                                err_lvls, min_chi2, plotname)
     plotHist.Draw('colz')
 
 
