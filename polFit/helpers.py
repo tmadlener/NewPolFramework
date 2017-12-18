@@ -44,6 +44,16 @@ def get_bin_centers(x_min, x_max, n_bins):
     return 0.5 * (bin_bounds[1:] + bin_bounds[:-1])
 
 
+def get_n_scan_points(scan_params):
+    """Get the total number of scanning points to scan."""
+    n = 1
+    for _, vals in scan_params:
+        # print(vals)
+        n *= vals.shape[0]
+
+    return n
+
+
 def scan_chi2_params(hist, fit_func, scan_params, par_names):
     """
     Calculate the chisquare value between a histogram and a function
@@ -69,6 +79,8 @@ def scan_chi2_params(hist, fit_func, scan_params, par_names):
         parameters and the corresponding chi2 value for each possible
         combination of parameter values in the input
     """
+    from tqdm import tqdm
+
     n_params, n_names = len(scan_params), len(par_names)
     if n_params != n_names:
         if n_params < n_names:
@@ -80,7 +92,11 @@ def scan_chi2_params(hist, fit_func, scan_params, par_names):
 
     results = []
 
-    for fix_funcs, val_comb in flat_list_tuple(scan_params):
+    n_total = get_n_scan_points(scan_params)
+    logging.debug('Scanning {} points in total'.format(n_total))
+
+    for fix_funcs, val_comb in tqdm(flat_list_tuple(scan_params),
+                                    total=n_total, ncols=80):
         pars = {}
         for (i, func) in enumerate(fix_funcs):
             func(fit_func, val_comb[i])
