@@ -105,6 +105,7 @@ def main(args):
                      '[0] * (3 + [1]) / (3 + [1] + [2]) * (1 + ([1] + [2]) * x[0]*x[0]) / (1 + [1] * x[0]*x[0])',
                      -1, 1)
 
+    free_fit_f = fit_func.Clone()
     # get the values that don't change with the binning here
     # the normalization is depending on the binning if it is fixed
     logging.debug('Getting parameter values for dlam = {} and lref = {}'
@@ -116,7 +117,7 @@ def main(args):
     for n_bins in (int(v) for v in args.binnings.split(',')):
         ratioh = get_ratio_hist(args.datafile, args.reffile, args.treename, n_bins)
         norm_values = get_norm_scan_values(args.norm_range, ratioh,
-                                           fit_func, args.fix_norm)
+                                           free_fit_f, args.fix_norm)
         scan_res = scan_param_space(ratioh, fit_func, {'N': norm_values,
                                                        'lref': lref_values,
                                                        'dlam': dlam_values})
