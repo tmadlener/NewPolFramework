@@ -120,7 +120,7 @@ def get_contour_scan(scan_results, min_chi2, err_level):
 
     # calculate the rest of the information as well
     # i.e. min and asymm uncertainties
-    chi2_min_idx = scan_results.chi2.argmin()
+    chi2_min_idx = np.argmin(scan_results.chi2.values)
     lth_ref, delta_lth = scan_results.iloc[chi2_min_idx][['lth_ref', 'delta_lth']]
 
     lth_min, delta_min = hull.min_bound
@@ -235,7 +235,7 @@ def fix_non_free_params(scan_results, x_param, y_param):
 
     fixed_vals = scan_results.iloc[min_chi2_idx][fixed_plot_vars]
     logging.debug('Free variables: {}, {}. Fixed variables {}, values: {}.'.
-                 format(x_param, y_param, fixed_vals.index, fixed_vals.values))
+                 format(x_param, y_param, fixed_vals.index.values, fixed_vals.values))
 
     # iteratively create the free indices of the data frame
     free = np.array(np.ones(scan_results.index.shape[0]), dtype=bool)
@@ -255,6 +255,9 @@ def get_binning(vals):
     count the unique elements as well as determine the min
     and max (taking into account that the passed values are
     bin centers)
+    If the value has been fixed in the scan (i.e. min and max are the
+    same value) None is returned to signal, that no appropriate
+    binning could be determined.
 
     Args:
         vals (numpy.ndarray): All values (at the bin centers)
@@ -266,15 +269,18 @@ def get_binning(vals):
     v_min = np.min(vals)
     v_max = np.max(vals)
 
+    if v_min == v_max:
+        logging.debug('value seems to have been fixed to {:.5f} in scan:'.format(v_min))
+        return None
+
     # calculate half the bin width assuming uniform bins
     hbin_width = 0.5 * (v_max - v_min) / (n_bins - 1)
     logging.debug('n_bins = {}, v_min = {}, v_max = {}, hbin_width = {}'
                  .format(n_bins, v_min, v_max, hbin_width))
-
     return (n_bins, v_min - hbin_width, v_max + hbin_width)
 
 
-def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2):
+def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2, plot_thresh=25):
     """
     Main plotting routine, only concerned with creating the plot.
     """
@@ -282,6 +288,12 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2):
 
     x_axis = get_binning(plot_vals[x_param])
     y_axis = get_binning(plot_vals[y_param])
+    if x_axis is None or y_axis is None:
+        logging.info('While creating the 2D plot one of the parameters has been found'
+                     ' to have been fixed during scan: x = {}: {}, y = {}: {}. '
+                     'No 2D histogram will be produced.'.format(x_param, x_axis, y_param, y_axis))
+        return None
+
     logging.debug('Creating histogram. x_axis = {}, y_axis = {}'.format(x_axis, y_axis))
     plotHist = r.TH2D('h', ';#lambda_{ref};#Delta_{#lambda};#chi^{2} - #chi^{2}_{min}',
                        x_axis[0], x_axis[1], x_axis[2], y_axis[0], y_axis[1], y_axis[2])
@@ -296,7 +308,7 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2):
     min_chi2 = min([min_chi2, plot_vals.chi2.min()])
 
     for _, vals in plot_vals.iterrows():
-        if vals.chi2 - min_chi2 > 25:
+        if vals.chi2 - min_chi2 > plot_thresh:
             continue
         i_bin = plotHist.FindBin(vals[x_param], vals[y_param])
         plotHist.SetBinContent(i_bin, vals.chi2 - min_chi2)
@@ -307,7 +319,7 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2):
         if b == 0:
             plotHist.SetBinContent(i, -1)
 
-    plotHist.GetZaxis().SetRangeUser(-0.01, 25.0)
+    plotHist.GetZaxis().SetRangeUser(-0.01, plot_thresh)
 
     return plotHist
 
