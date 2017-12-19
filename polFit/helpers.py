@@ -90,19 +90,30 @@ def scan_chi2_params(hist, fit_func, scan_params, par_names):
             logging.error('Got {} scan_params but only {} par_names. Need the '
                          'same number!'.format(n_params, n_names))
 
-    results = []
-
     n_total = get_n_scan_points(scan_params)
-    logging.debug('Scanning {} points in total'.format(n_total))
+    logging.debug('Allocating results array of size {}'.format(n_total))
 
-    for fix_funcs, val_comb in tqdm(flat_list_tuple(scan_params),
-                                    total=n_total, ncols=80):
-        pars = {}
+    # define the maximum number of scan point for which the (faster)
+    # list of list approach is used before switching to a more memory
+    # efficient numpy.array
+    n_max_size = 30 * 1000**2
+    if n_total < n_max_size:
+        logging.debug('Using list of lists since size is smaller than {}'
+                      .format(n_max_size))
+        results = [[-1,-1,-1,-1] for _ in xrange(n_total)]
+    else:
+        logging.debug('Using numpy array, since size is greater than {}'
+                      .format(n_max_size))
+        results = np.zeros((n_total, 4), dtype=np.float64)
+
+    logging.debug('Scanning {} points in total'.format(n_total))
+    for j, (fix_funcs, val_comb) in enumerate(tqdm(flat_list_tuple(scan_params),
+                                                   total=n_total, ncols=80)):
         for (i, func) in enumerate(fix_funcs):
             func(fit_func, val_comb[i])
-            pars[par_names[i]] = val_comb[i]
+            results[j][i] = val_comb[i]
 
-        pars['chi2'] = hist.Chisquare(fit_func)
-        results.append(pars)
+        results[j][3] = hist.Chisquare(fit_func)
 
-    return pd.DataFrame(results)
+    logging.debug('Scanning done. Creating DataFrame')
+    return pd.DataFrame(results, columns=par_names.values() + ['chi2'])
