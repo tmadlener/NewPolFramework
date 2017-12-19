@@ -16,7 +16,7 @@ from utils.miscHelpers import parseVarBinning
 from run_ratio_fit_new import scan_param_space
 
 
-def get_ratio_hist(dataf, reff, treen, n_bins):
+def get_ratio_hist(dataf, reff, treen, n_bins, bin_thresh=0):
     """Get the 'cleaned up' ratio hist"""
     from run_ratio_histo_fit import get_histos, divide, set_bins_to_zero
 
@@ -24,8 +24,8 @@ def get_ratio_hist(dataf, reff, treen, n_bins):
                  'reffile \'{}\' using {} bins'.format(dataf, reff, n_bins))
     datah, refh = get_histos(dataf, reff, treen, n_bins)
 
-    set_bins_to_zero(datah, 0, True)
-    set_bins_to_zero(refh, 0, True)
+    set_bins_to_zero(datah, bin_thresh, True)
+    set_bins_to_zero(refh, bin_thresh, True)
 
     return divide(datah, refh)
 
@@ -115,7 +115,8 @@ def main(args):
 
 
     for n_bins in (int(v) for v in args.binnings.split(',')):
-        ratioh = get_ratio_hist(args.datafile, args.reffile, args.treename, n_bins)
+        ratioh = get_ratio_hist(args.datafile, args.reffile, args.treename, n_bins,
+                                args.bin_thresh)
         norm_values = get_norm_scan_values(args.norm_range, ratioh,
                                            free_fit_f, args.fix_norm)
         scan_res = scan_param_space(ratioh, fit_func, {'N': norm_values,
@@ -149,6 +150,8 @@ if __name__ == '__main__':
                         help='values to use for the lambda_ref scan')
     parser.add_argument('-d', '--dlam-range', default=['0'], nargs='+',
                         help='values to use for the delta_lambda scan')
+    parser.add_argument('-c', '--bin-thresh', type=float, default=0,
+                        help='minimum number of entries for a bin to be considered.')
 
     clargs = parser.parse_args()
 
