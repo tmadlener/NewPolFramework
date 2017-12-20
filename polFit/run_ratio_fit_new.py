@@ -284,6 +284,7 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2, plot_th
     """
     Main plotting routine, only concerned with creating the plot.
     """
+    from tqdm import tqdm
     plot_vals = fix_non_free_params(scan_results, x_param, y_param)
 
     x_axis = get_binning(plot_vals[x_param])
@@ -307,9 +308,10 @@ def create_scan_plot(scan_results, x_param, y_param, err_lvls, min_chi2, plot_th
                  .format(min_chi2, plot_vals.chi2.min()))
     min_chi2 = min([min_chi2, plot_vals.chi2.min()])
 
-    for _, vals in plot_vals.iterrows():
-        if vals.chi2 - min_chi2 > plot_thresh:
-            continue
+    # only loop over those values that are actually going to be plotted
+    vals_to_plot = plot_vals.chi2 < plot_thresh
+    for _, vals in tqdm(plot_vals[vals_to_plot].iterrows(),
+                        total=plot_vals[vals_to_plot].index.shape[0], ncols=80):
         i_bin = plotHist.FindBin(vals[x_param], vals[y_param])
         plotHist.SetBinContent(i_bin, vals.chi2 - min_chi2)
 
