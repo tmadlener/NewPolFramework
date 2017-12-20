@@ -3,7 +3,7 @@
 import sys
 
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(funcName)s: %(message)s')
 
 import ROOT as r
@@ -111,7 +111,7 @@ def set_line_styles(graphs):
     for i, g in enumerate(graphs):
         i_col = (i + 1) / n_colors
         g.SetLineStyle(line_styles[i_col])
-        g.SetLineWidth(1)
+        g.SetLineWidth(2)
 
 
 def plot_graphs(graphs, sel_str, plotname, contour, ranges):
@@ -180,8 +180,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Script for creating plots comparing'
                                      ' different uncertainty shapes')
     parser.add_argument('inputfiles', nargs='+', help='input files to use')
-    parser.add_argument('--loglevel', default='INFO', type=str,
-                        help='desired log level')
     parser.add_argument('-o', '--outbase', default='fit_results',
                         help='base name for the output plots')
     parser.add_argument('-c', '--contour', default=True, action='store_true',
@@ -200,8 +198,6 @@ if __name__ == '__main__':
 
     r.gROOT.SetBatch()
     r.gROOT.ProcessLine('gErrorIgnoreLevel = 1001')
-
-    print(args.zoom)
 
     main(args.inputfiles, args.contour, args.errorbars, args.outbase, args.errlevel,
          args.zoom)
