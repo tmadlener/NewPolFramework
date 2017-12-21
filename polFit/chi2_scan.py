@@ -70,7 +70,7 @@ def get_norm_scan_values(norm, hist, func, fix_norm=False):
     return vals
 
 
-def store_dataframe(df, outfile):
+def store_dataframe(df, outfile, tname='chi2_values'):
     """
     Store the dataframe either into a pkl file or into a root file via
     root_pandas.
@@ -89,7 +89,9 @@ def store_dataframe(df, outfile):
     if outfile.endswith('.root'):
         try:
             from root_pandas import to_root
-            to_root(df, outfile, 'chi2_values')
+            # current version of to_root doesnot support the store_index argument
+            to_root(df, outfile, tname, mode='w'# , store_index=False
+            )
         except ImportError:
             logging.warning('Output to .root file was requested, but root_pandas'
                             ' was not found. Creating a .pkl file instead')
